@@ -1,0 +1,929 @@
+"""
+South Punjab Development Dashboard
+Streamlit Application — Premium UI
+
+An interactive dashboard analyzing socioeconomic disparities
+across South Punjab districts using real government data.
+"""
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import sys
+import os
+
+# Add project root to path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from src.data_loader import (
+    load_data, clean_data, filter_south_punjab, filter_rest_of_punjab,
+    get_summary_stats, get_district_profile, get_rankings,
+    SOUTH_PUNJAB_DISTRICTS
+)
+from src.eda import (
+    plot_literacy_comparison, plot_poverty_map, plot_gender_gap,
+    plot_enrollment_trends, plot_health_indicators,
+    plot_correlation_heatmap, plot_south_vs_rest,
+    plot_division_comparison, plot_literacy_vs_poverty
+)
+from src.ml_model import (
+    prepare_features, train_linear, train_ridge, find_best_alpha,
+    evaluate_model, plot_predictions, plot_feature_importance, plot_residuals
+)
+
+# ─── Page Config ──────────────────────────────────────────────────────────────
+
+st.set_page_config(
+    page_title="South Punjab Development Dashboard",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# ─── Premium CSS ──────────────────────────────────────────────────────────────
+
+st.markdown("""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    /* ─── Global ──────────────────────────────────────── */
+    html, body, [class*="st-"] {
+        font-family: 'Inter', sans-serif;
+    }
+    .main .block-container {
+        padding: 1.5rem 2rem 2rem;
+        max-width: 1300px;
+    }
+    .main { background: #F8FAFC; }
+
+    /* ─── Hide default Streamlit branding ─────────────── */
+    #MainMenu, footer, header { visibility: hidden; }
+
+    /* ─── Sidebar ─────────────────────────────────────── */
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+        border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    section[data-testid="stSidebar"] * {
+        color: #CBD5E1 !important;
+    }
+    section[data-testid="stSidebar"] .stRadio label {
+        padding: 0.5rem 0.75rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        margin-bottom: 2px;
+    }
+    section[data-testid="stSidebar"] .stRadio label:hover {
+        background: rgba(99, 102, 241, 0.15);
+        color: #E0E7FF !important;
+    }
+    section[data-testid="stSidebar"] .stRadio label[data-checked="true"],
+    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label[aria-checked="true"] {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
+        color: #C7D2FE !important;
+        font-weight: 600;
+    }
+
+    /* ─── Headers ─────────────────────────────────────── */
+    h1 {
+        color: #0F172A !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.03em;
+        font-size: 2rem !important;
+    }
+    h2 {
+        color: #1E293B !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.02em;
+    }
+    h3 {
+        color: #334155 !important;
+        font-weight: 600 !important;
+    }
+
+    /* ─── Custom Metric Cards ─────────────────────────── */
+    .metric-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+        border: 1px solid #E2E8F0;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .metric-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
+        border-color: #C7D2FE;
+    }
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        border-radius: 16px 16px 0 0;
+    }
+    .metric-card.blue::before { background: linear-gradient(90deg, #6366F1, #818CF8); }
+    .metric-card.red::before { background: linear-gradient(90deg, #EF4444, #F87171); }
+    .metric-card.green::before { background: linear-gradient(90deg, #10B981, #34D399); }
+    .metric-card.amber::before { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+    .metric-card.purple::before { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
+    .metric-card.teal::before { background: linear-gradient(90deg, #14B8A6, #2DD4BF); }
+
+    .metric-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.4rem;
+    }
+    .metric-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #0F172A;
+        line-height: 1.1;
+        margin-bottom: 0.3rem;
+    }
+    .metric-delta {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 20px;
+        display: inline-block;
+    }
+    .metric-delta.negative {
+        color: #DC2626;
+        background: #FEE2E2;
+    }
+    .metric-delta.positive {
+        color: #059669;
+        background: #D1FAE5;
+    }
+    .metric-delta.neutral {
+        color: #D97706;
+        background: #FEF3C7;
+    }
+
+    /* ─── Page Banner ─────────────────────────────────── */
+    .page-banner {
+        background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 40%, #1E293B 100%);
+        border-radius: 20px;
+        padding: 2rem 2.5rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .page-banner::after {
+        content: '';
+        position: absolute;
+        top: -50%; right: -20%;
+        width: 60%; height: 200%;
+        background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 60%);
+        border-radius: 50%;
+    }
+    .page-banner h1 {
+        color: white !important;
+        font-size: 1.8rem !important;
+        margin-bottom: 0.25rem;
+        position: relative;
+        z-index: 1;
+    }
+    .page-banner p {
+        color: #94A3B8;
+        font-size: 1rem;
+        max-width: 700px;
+        position: relative;
+        z-index: 1;
+    }
+    .page-banner .badge {
+        display: inline-block;
+        background: rgba(99, 102, 241, 0.2);
+        color: #C7D2FE;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        margin-right: 6px;
+        margin-bottom: 8px;
+    }
+
+    /* ─── Section Cards ───────────────────────────────── */
+    .section-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        margin-bottom: 1rem;
+    }
+    .section-card h3 {
+        margin-top: 0 !important;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #F1F5F9;
+        margin-bottom: 1rem;
+    }
+
+    /* ─── Tabs ────────────────────────────────────────── */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 4px;
+        background: #F1F5F9;
+        border-radius: 12px;
+        padding: 4px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 10px;
+        padding: 10px 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        background: transparent;
+        border: none;
+        color: #64748B;
+    }
+    .stTabs [data-baseweb="tab"][aria-selected="true"] {
+        background: white !important;
+        color: #4F46E5 !important;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .stTabs [data-baseweb="tab-highlight"] {
+        display: none;
+    }
+    .stTabs [data-baseweb="tab-border"] {
+        display: none;
+    }
+
+    /* ─── DataFrames ──────────────────────────────────── */
+    .stDataFrame {
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    /* ─── Selectbox, Slider ───────────────────────────── */
+    .stSelectbox > div > div,
+    .stSlider > div {
+        border-radius: 10px;
+    }
+
+    /* ─── Divider ─────────────────────────────────────── */
+    hr {
+        border: none;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #E2E8F0, transparent);
+        margin: 1.5rem 0;
+    }
+
+    /* ─── Insight Box ─────────────────────────────────── */
+    .insight-box {
+        background: linear-gradient(135deg, #EEF2FF, #F8FAFC);
+        border-left: 4px solid #6366F1;
+        border-radius: 0 12px 12px 0;
+        padding: 1rem 1.25rem;
+        margin: 1rem 0;
+        font-size: 0.95rem;
+        color: #334155;
+    }
+    .insight-box strong { color: #4F46E5; }
+
+    /* ─── About page cards ────────────────────────────── */
+    .about-card {
+        background: white;
+        border-radius: 16px;
+        padding: 1.5rem;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .about-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    }
+    .about-card .icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    .about-card h4 {
+        color: #1E293B;
+        margin: 0.5rem 0 0.25rem;
+    }
+    .about-card p {
+        color: #64748B;
+        font-size: 0.85rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
+# ─── Helper: Custom Metric Card ──────────────────────────────────────────────
+
+def metric_card(label, value, delta=None, delta_type="neutral", color="blue"):
+    """Render a styled metric card."""
+    delta_html = ""
+    if delta:
+        delta_html = f'<div class="metric-delta {delta_type}">{delta}</div>'
+    st.markdown(f"""
+    <div class="metric-card {color}">
+        <div class="metric-label">{label}</div>
+        <div class="metric-value">{value}</div>
+        {delta_html}
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ─── Load Data (cached) ──────────────────────────────────────────────────────
+
+@st.cache_data
+def load_and_clean():
+    df = load_data()
+    df = clean_data(df)
+    return df
+
+@st.cache_data
+def train_models(_df):
+    data = prepare_features(_df)
+    lr = train_linear(data["X_train"], data["y_train"])
+    best_alpha, alpha_df = find_best_alpha(data["X_train"], data["y_train"])
+    ridge = train_ridge(data["X_train"], data["y_train"], alpha=best_alpha)
+    return lr, ridge, data, best_alpha, alpha_df
+
+df = load_and_clean()
+sp_df = filter_south_punjab(df)
+rest_df = filter_rest_of_punjab(df)
+
+
+# ─── Sidebar ─────────────────────────────────────────────────────────────────
+
+with st.sidebar:
+    st.markdown("""
+    <div style="text-align:center; padding: 1rem 0 0.5rem;">
+        <div style="font-size: 2rem; margin-bottom: 0.25rem;">📊</div>
+        <div style="font-size: 1.1rem; font-weight: 700; color: #E2E8F0 !important; letter-spacing: -0.02em;">
+            South Punjab
+        </div>
+        <div style="font-size: 0.75rem; font-weight: 400; color: #64748B !important; letter-spacing: 0.05em; text-transform: uppercase;">
+            Development Dashboard
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
+
+    page = st.radio(
+        "Navigation",
+        ["🏠 Overview", "🏘️ District Profiles", "📈 EDA", "🤖 ML Predictions", "ℹ️ About"],
+        label_visibility="collapsed"
+    )
+
+    st.markdown("---")
+
+    # Stats
+    st.markdown(f"""
+    <div style="padding: 0 0.5rem;">
+        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #475569 !important; margin-bottom: 0.75rem; font-weight: 600;">
+            Dataset Summary
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+            <div style="background: rgba(99,102,241,0.1); border-radius: 10px; padding: 0.6rem 0.75rem;">
+                <div style="font-size: 1.2rem; font-weight: 700; color: #C7D2FE !important;">{len(df)}</div>
+                <div style="font-size: 0.65rem; color: #64748B !important;">Districts</div>
+            </div>
+            <div style="background: rgba(239, 68, 68, 0.1); border-radius: 10px; padding: 0.6rem 0.75rem;">
+                <div style="font-size: 1.2rem; font-weight: 700; color: #FCA5A5 !important;">{len(sp_df)}</div>
+                <div style="font-size: 0.65rem; color: #64748B !important;">South Punjab</div>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.1); border-radius: 10px; padding: 0.6rem 0.75rem;">
+                <div style="font-size: 1.2rem; font-weight: 700; color: #6EE7B7 !important;">{len(rest_df)}</div>
+                <div style="font-size: 0.65rem; color: #64748B !important;">Rest of Punjab</div>
+            </div>
+            <div style="background: rgba(245, 158, 11, 0.1); border-radius: 10px; padding: 0.6rem 0.75rem;">
+                <div style="font-size: 1.2rem; font-weight: 700; color: #FCD34D !important;">{len(df.columns)}</div>
+                <div style="font-size: 0.65rem; color: #64748B !important;">Indicators</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("---")
+    st.markdown("""
+    <div style="padding: 0 0.5rem; font-size: 0.65rem; color: #475569 !important; line-height: 1.5;">
+        📄 PBS Census 2023<br>
+        📄 PSLM Survey 2019-20<br>
+        📄 UNDP SDG Reports
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 1: OVERVIEW
+# ═══════════════════════════════════════════════════════════════════════════════
+
+if page == "🏠 Overview":
+    # Banner
+    st.markdown("""
+    <div class="page-banner">
+        <div class="badge">LIVE DATA</div>
+        <div class="badge">36 DISTRICTS</div>
+        <div class="badge">18 INDICATORS</div>
+        <h1>📊 South Punjab Development Dashboard</h1>
+        <p>Analyzing socioeconomic disparities across 11 South Punjab districts
+        compared to the rest of Punjab using real government data from PBS Census 2023
+        and PSLM 2019-20.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Key metrics
+    sp_lit = sp_df["literacy_rate"].mean()
+    rest_lit = rest_df["literacy_rate"].mean()
+    sp_pov = sp_df["poverty_headcount"].mean()
+    rest_pov = rest_df["poverty_headcount"].mean()
+    sp_imm = sp_df["immunization_coverage"].mean()
+    rest_imm = rest_df["immunization_coverage"].mean()
+    sp_gap = sp_df["gender_literacy_gap"].mean()
+    rest_gap = rest_df["gender_literacy_gap"].mean()
+
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        metric_card("Avg Literacy (South)", f"{sp_lit:.1f}%",
+                     f"▼ {abs(sp_lit - rest_lit):.1f}% vs Rest", "negative", "blue")
+    with col2:
+        metric_card("Avg Poverty (South)", f"{sp_pov:.1f}%",
+                     f"▲ +{sp_pov - rest_pov:.1f}% vs Rest", "negative", "red")
+    with col3:
+        metric_card("Immunization (South)", f"{sp_imm:.1f}%",
+                     f"▼ {abs(sp_imm - rest_imm):.1f}% vs Rest", "negative", "teal")
+    with col4:
+        metric_card("Gender Literacy Gap", f"{sp_gap:.1f}%",
+                     f"▲ +{sp_gap - rest_gap:.1f}% vs Rest", "negative", "amber")
+
+    st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
+
+    # Insight box
+    worst = df.loc[df["poverty_headcount"].idxmax()]
+    best = df.loc[df["poverty_headcount"].idxmin()]
+    st.markdown(f"""
+    <div class="insight-box">
+        💡 <strong>Key Insight:</strong> The most impoverished district is <strong>{worst['district']}</strong>
+        ({worst['poverty_headcount']:.1f}% poverty) while <strong>{best['district']}</strong> has the lowest
+        ({best['poverty_headcount']:.1f}%). South Punjab averages <strong>{sp_pov - rest_pov:.1f}% higher</strong>
+        poverty than the rest of Punjab.
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Rankings in cards
+    col_a, col_b = st.columns(2)
+
+    with col_a:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### 🔴 Most Impoverished Districts")
+        poverty_rank = get_rankings(df, "poverty_headcount", ascending=False)
+        st.dataframe(
+            poverty_rank.head(10).style.background_gradient(
+                subset=["poverty_headcount"], cmap="Reds"
+            ),
+            width="stretch", hide_index=False
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_b:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### 🟢 Most Literate Districts")
+        lit_rank = get_rankings(df, "literacy_rate", ascending=False)
+        st.dataframe(
+            lit_rank.head(10).style.background_gradient(
+                subset=["literacy_rate"], cmap="Greens"
+            ),
+            width="stretch", hide_index=False
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Scatter
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown("### 🔍 Literacy vs Poverty — All Punjab Districts")
+    fig = plot_literacy_vs_poverty(df)
+    st.pyplot(fig)
+    plt.close(fig)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 2: DISTRICT PROFILES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+elif page == "🏘️ District Profiles":
+    st.markdown("""
+    <div class="page-banner">
+        <h1>🏘️ District Profiles</h1>
+        <p>Explore detailed socioeconomic indicators for any Punjab district.
+        Select a district below to view its full profile.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    selected = st.selectbox("Select a District", sorted(df["district"].unique()))
+    profile = get_district_profile(df, selected)
+
+    is_south = profile["region"] == "South Punjab"
+    region_color = "#EF4444" if is_south else "#6366F1"
+    region_bg = "#FEE2E2" if is_south else "#EEF2FF"
+
+    st.markdown(f"""
+    <div style="display: flex; align-items: center; gap: 1rem; margin: 1rem 0;">
+        <h2 style="margin: 0;">{profile['district']}</h2>
+        <span style="background: {region_bg}; color: {region_color}; padding: 4px 12px;
+              border-radius: 20px; font-size: 0.8rem; font-weight: 600;">{profile['region']}</span>
+        <span style="color: #64748B; font-size: 0.9rem;">{profile['division']} Division</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Row 1: Demographics
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        metric_card("Population", f"{profile['population_2023']:,.0f}", color="blue")
+    with c2:
+        metric_card("Area", f"{profile['area_sqkm']:,.0f} km²", color="blue")
+    with c3:
+        metric_card("Density", f"{profile['density_per_sqkm']:,.0f} /km²", color="blue")
+
+    st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
+
+    # Row 2: Education
+    c4, c5, c6, c7 = st.columns(4)
+    with c4:
+        lit_vs = profile['literacy_rate'] - df['literacy_rate'].mean()
+        delta_type = "positive" if lit_vs >= 0 else "negative"
+        metric_card("Literacy Rate", f"{profile['literacy_rate']:.1f}%",
+                     f"{'▲' if lit_vs >= 0 else '▼'} {abs(lit_vs):.1f}% vs avg", delta_type, "green")
+    with c5:
+        metric_card("Male Literacy", f"{profile['male_literacy']:.1f}%", color="green")
+    with c6:
+        metric_card("Female Literacy", f"{profile['female_literacy']:.1f}%", color="green")
+    with c7:
+        metric_card("Gender Gap", f"{profile['gender_literacy_gap']:.1f}%",
+                     "Higher = worse", "neutral", "amber")
+
+    st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
+
+    # Row 3: Poverty & Health
+    c8, c9, c10, c11 = st.columns(4)
+    with c8:
+        pov_vs = profile['poverty_headcount'] - df['poverty_headcount'].mean()
+        delta_type = "negative" if pov_vs > 0 else "positive"
+        metric_card("Poverty", f"{profile['poverty_headcount']:.1f}%",
+                     f"{'▲' if pov_vs > 0 else '▼'} {abs(pov_vs):.1f}% vs avg", delta_type, "red")
+    with c9:
+        metric_card("MPI Score", f"{profile['mpi_score']:.3f}", color="red")
+    with c10:
+        metric_card("Immunization", f"{profile['immunization_coverage']:.0f}%", color="teal")
+    with c11:
+        metric_card("Clean Water", f"{profile['clean_water_access']:.1f}%", color="teal")
+
+    # Comparison table
+    st.markdown("---")
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown("### 📊 Compared to Averages")
+
+    indicators = ["literacy_rate", "poverty_headcount", "immunization_coverage",
+                   "clean_water_access", "primary_enrollment_rate", "electricity_access"]
+
+    compare_data = []
+    for ind in indicators:
+        district_val = profile[ind]
+        sp_avg = sp_df[ind].mean()
+        punjab_avg = df[ind].mean()
+        compare_data.append({
+            "Indicator": ind.replace("_", " ").title(),
+            f"📍 {selected}": district_val,
+            "🔴 South Punjab Avg": sp_avg,
+            "🟣 All Punjab Avg": punjab_avg,
+        })
+
+    compare_df = pd.DataFrame(compare_data)
+    st.dataframe(compare_df.style.format({
+        f"📍 {selected}": "{:.1f}",
+        "🔴 South Punjab Avg": "{:.1f}",
+        "🟣 All Punjab Avg": "{:.1f}"
+    }).background_gradient(subset=[f"📍 {selected}"], cmap="Blues"),
+    use_container_width=True, hide_index=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 3: EDA
+# ═══════════════════════════════════════════════════════════════════════════════
+
+elif page == "📈 EDA":
+    st.markdown("""
+    <div class="page-banner">
+        <h1>📈 Exploratory Data Analysis</h1>
+        <p>Dive deep into the socioeconomic indicators with interactive charts
+        comparing South Punjab against the rest of Punjab.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📚 Literacy", "💰 Poverty", "🏫 Education", "🏥 Health", "🔗 Correlations"
+    ])
+
+    with tab1:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### District-wise Literacy Rates")
+        st.markdown("""<div class="insight-box">
+            💡 South Punjab districts cluster at the <strong>bottom</strong> of literacy rankings,
+            with <strong>Rajanpur</strong> (26.1%) having the lowest literacy in all of Punjab.
+        </div>""", unsafe_allow_html=True)
+        fig = plot_literacy_comparison(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Gender Literacy Gap — Worst Districts")
+        n_districts = st.slider("Number of districts to show", 5, 20, 15, key="gender_n")
+        fig = plot_gender_gap(df, top_n=n_districts)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab2:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### District-wise Poverty Headcount")
+        st.markdown("""<div class="insight-box">
+            💡 <strong>8 out of the top 10</strong> most impoverished districts in Punjab
+            belong to South Punjab, with DG Khan division being the worst affected.
+        </div>""", unsafe_allow_html=True)
+        fig = plot_poverty_map(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### South Punjab vs Rest of Punjab")
+        fig = plot_south_vs_rest(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab3:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### School Enrollment — South Punjab")
+        st.markdown("""<div class="insight-box">
+            💡 There's a <strong>significant drop</strong> from primary to middle enrollment
+            across all South Punjab districts, indicating high dropout rates after primary school.
+        </div>""", unsafe_allow_html=True)
+        fig = plot_enrollment_trends(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Division-wise Comparison")
+        indicator = st.selectbox(
+            "Choose indicator",
+            ["primary_enrollment_rate", "middle_enrollment_rate", "literacy_rate"],
+            format_func=lambda x: x.replace("_", " ").title(),
+            key="div_indicator"
+        )
+        fig = plot_division_comparison(df, indicator=indicator)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab4:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Health Indicators — South Punjab")
+        st.markdown("""<div class="insight-box">
+            💡 <strong>Rajanpur</strong> has the worst health infrastructure with only
+            42% immunization coverage and 45.2% clean water access.
+        </div>""", unsafe_allow_html=True)
+        fig = plot_health_indicators(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab5:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Correlation Matrix")
+        st.markdown("""<div class="insight-box">
+            💡 <strong>Literacy rate</strong> and <strong>poverty headcount</strong> show a strong
+            negative correlation (r ≈ -0.98), confirming that education is the strongest predictor of poverty.
+        </div>""", unsafe_allow_html=True)
+        fig = plot_correlation_heatmap(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Literacy vs Poverty Scatter")
+        fig = plot_literacy_vs_poverty(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 4: ML PREDICTIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+elif page == "🤖 ML Predictions":
+    st.markdown("""
+    <div class="page-banner">
+        <div class="badge">LINEAR REGRESSION</div>
+        <div class="badge">RIDGE REGRESSION</div>
+        <div class="badge">CROSS-VALIDATION</div>
+        <h1>🤖 Poverty Prediction Models</h1>
+        <p>Using literacy and health indicators to predict district-level poverty
+        headcount via Linear and Ridge regression with cross-validated hyperparameters.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    with st.spinner("Training models..."):
+        lr_model, ridge_model, data, best_alpha, alpha_df = train_models(df)
+
+    X_test, y_test = data["X_test"], data["y_test"]
+    feature_names = data["feature_names"]
+
+    y_pred_lr = lr_model.predict(X_test)
+    y_pred_ridge = ridge_model.predict(X_test)
+
+    from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+
+    lr_r2 = r2_score(y_test, y_pred_lr)
+    lr_mae = mean_absolute_error(y_test, y_pred_lr)
+    lr_rmse = np.sqrt(mean_squared_error(y_test, y_pred_lr))
+
+    ridge_r2 = r2_score(y_test, y_pred_ridge)
+    ridge_mae = mean_absolute_error(y_test, y_pred_ridge)
+    ridge_rmse = np.sqrt(mean_squared_error(y_test, y_pred_ridge))
+
+    # Model comparison cards
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Linear Regression")
+        m1, m2, m3 = st.columns(3)
+        with m1:
+            metric_card("R² Score", f"{lr_r2:.3f}", color="blue")
+        with m2:
+            metric_card("MAE", f"{lr_mae:.2f}%", color="green")
+        with m3:
+            metric_card("RMSE", f"{lr_rmse:.2f}%", color="amber")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col2:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown(f"### Ridge Regression (α={best_alpha})")
+        m4, m5, m6 = st.columns(3)
+        with m4:
+            metric_card("R² Score", f"{ridge_r2:.3f}", color="purple")
+        with m5:
+            metric_card("MAE", f"{ridge_mae:.2f}%", color="green")
+        with m6:
+            metric_card("RMSE", f"{ridge_rmse:.2f}%", color="amber")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div class="insight-box">
+        💡 Both models achieve <strong>R² > 0.99</strong>, indicating that literacy and health
+        indicators explain over 99% of the variance in poverty headcount. Ridge regression
+        with α={best_alpha} provides slightly better generalization via cross-validation.
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Plots
+    tab1, tab2, tab3 = st.tabs(["📊 Predictions", "📉 Feature Importance", "📋 Alpha Tuning"])
+
+    with tab1:
+        colA, colB = st.columns(2)
+        with colA:
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            fig = plot_predictions(y_test, y_pred_lr, "Linear Regression")
+            st.pyplot(fig)
+            plt.close(fig)
+            st.markdown('</div>', unsafe_allow_html=True)
+        with colB:
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            fig = plot_predictions(y_test, y_pred_ridge, f"Ridge (α={best_alpha})")
+            st.pyplot(fig)
+            plt.close(fig)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab2:
+        colA, colB = st.columns(2)
+        with colA:
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            fig = plot_feature_importance(lr_model, feature_names, "Linear Regression")
+            st.pyplot(fig)
+            plt.close(fig)
+            st.markdown('</div>', unsafe_allow_html=True)
+        with colB:
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            fig = plot_feature_importance(ridge_model, feature_names, f"Ridge (α={best_alpha})")
+            st.pyplot(fig)
+            plt.close(fig)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab3:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Ridge Alpha Cross-Validation Results")
+        st.dataframe(
+            alpha_df.style.format({"alpha": "{:.2f}", "cv_r2_mean": "{:.4f}", "cv_r2_std": "{:.4f}"})
+                .highlight_max(subset=["cv_r2_mean"], color="#D1FAE5")
+                .highlight_min(subset=["cv_r2_std"], color="#EEF2FF"),
+            use_container_width=True, hide_index=True
+        )
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Residuals
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown("### Residual Analysis")
+    fig = plot_residuals(y_test, y_pred_ridge, f"Ridge (α={best_alpha})")
+    st.pyplot(fig)
+    plt.close(fig)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PAGE 5: ABOUT
+# ═══════════════════════════════════════════════════════════════════════════════
+
+elif page == "ℹ️ About":
+    st.markdown("""
+    <div class="page-banner">
+        <h1>ℹ️ About This Project</h1>
+        <p>A portfolio data science project analyzing development disparities
+        in South Punjab using real government statistics.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Tech stack cards
+    col1, col2, col3, col4, col5 = st.columns(5)
+    for col, icon, name, desc in [
+        (col1, "🐍", "Python", "Core Language"),
+        (col2, "🐼", "Pandas", "Data Processing"),
+        (col3, "📊", "Matplotlib", "Visualizations"),
+        (col4, "🧠", "Scikit-learn", "ML Models"),
+        (col5, "🚀", "Streamlit", "Dashboard"),
+    ]:
+        with col:
+            st.markdown(f"""
+            <div class="about-card">
+                <div class="icon">{icon}</div>
+                <h4>{name}</h4>
+                <p>{desc}</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
+
+    col_a, col_b = st.columns(2)
+
+    with col_a:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### 🎯 Objective")
+        st.markdown("""
+        - Identify development gaps in South Punjab
+        - Visualize literacy, poverty, health & education indicators
+        - Apply ML to understand poverty determinants
+        - Create an interactive, explorable dashboard
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### 🏛️ South Punjab Districts")
+        st.markdown("""
+        | Division | Districts |
+        |----------|-----------|
+        | **Multan** | Multan, Lodhran, Khanewal, Vehari |
+        | **Bahawalpur** | Bahawalpur, Bahawalnagar, Rahim Yar Khan |
+        | **DG Khan** | DG Khan, Muzaffargarh, Layyah, Rajanpur |
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with col_b:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### 📊 Data Sources")
+        st.markdown("""
+        | Source | Data | Year |
+        |--------|------|------|
+        | **PBS Census** | Population, literacy | 2023 |
+        | **PSLM Survey** | Poverty, enrollment, health | 2019-20 |
+        | **UNDP SDG** | MPI scores | 2020 |
+        | **DHS** | Health indicators | 2017-18 |
+        | **HDX** | National trends | Various |
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### 👨‍💻 Author")
+        st.markdown("""
+        **BS Data Science** — 4th Semester
+
+        Air University, Islamabad (Layyah Campus)
+
+        *Built as a portfolio project for coursework.*
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
