@@ -18,28 +18,11 @@ def parse_literate_pct_line(line):
     """
     parts = line.replace('Literate %', '').strip()
     
-    # Strategy: find all decimal numbers. Each percentage value contains exactly one decimal point.
-    # Split by decimal points to reconstruct values.
-    # The pattern is: digits (possibly with spaces) followed by .digits
-    # e.g., "3 6.09 4 3.68" -> we need to find values like "36.09", "43.68"
-    
-    # Remove all spaces and then re-parse won't work because "3 6.09" becomes "36.09" but 
-    # "5 .26" becomes "5.26" - actually that works!
-    # Wait - if we remove ALL spaces, "3 6.09 4 3.68" becomes "36.0943.68" which is wrong.
-    
-    # Better approach: Find each decimal number pattern allowing for internal spaces
-    # A value is: optional_digit_group SPACE decimal_point digits
-    # More precisely: (digits)(space)(digits).(digits) OR (digits).(digits)
-    
-    # Let's use a different approach: split on patterns that look like boundaries between numbers
-    # Each number ends with .\d+ and the next number starts with a digit
-    
-    # First, collapse multiple spaces
+    # First, collapse multiple spaces to normalize the string
     parts = re.sub(r'\s+', ' ', parts)
     
     # Pattern: capture sequences that form a decimal number
-    # A number is: (one or more groups of digits possibly separated by single spaces) . (digits)
-    # The decimal point is the anchor
+    # Decimal point acts as the anchor: find digits (possibly separated by spaces), then a decimal, then digits
     
     values = []
     # Find all occurrences of decimal numbers with potential space before the decimal or within integer part
@@ -64,29 +47,10 @@ def parse_population_line(line, prefix):
     parts = line.replace(prefix, '').strip()
     parts = re.sub(r'\s+', ' ', parts)
     
-    # Population numbers have commas and spaces: "1 ,891,721" = 1891721
-    # Find the first large number
-    # Remove the prefix, then grab everything up to the pattern break
-    # Numbers look like: digit(s) ,digit(s),digit(s) or digit(s) space ,digit(s)
-    
-    # Simple approach: remove all spaces around commas, then split
-    cleaned = re.sub(r'\s*,\s*', '', parts)
-    # Now we have groups of digits possibly separated by spaces
-    # The first group should be the total population
-    nums = cleaned.split()
-    
-    # Reconstruct: take digits until we hit a gap that's too big
-    # Actually, after removing commas, "1 891721 963665 ..." - first token is partial
-    # Better: remove ALL spaces, then split by reasonable boundaries
-    
-    all_digits = re.sub(r'\s+', '', cleaned)
-    # This gives us something like "18917219636659279381181365225..."
-    # That's not useful. Let me try a different approach.
-    
-    # Go back to original: find comma-separated numbers with spaces
+    # Identify comma-separated numbers that may contain spaces
+    # Values can look like "1 ,891,721" or "9 63,665"
     raw = line.replace(prefix, '').strip()
-    # Pattern for PBS numbers: digits, optionally followed by (space?,comma,space?,digits)+
-    # e.g., "1 ,891,721" or "9 63,665"
+    # Pattern for PBS numbers: digits, optionally followed by combinations of spaces and commas, ending in digits
     pattern = r'(\d[\d\s]*(?:\s*,\s*\d{3})*)'
     matches = re.findall(pattern, raw)
     

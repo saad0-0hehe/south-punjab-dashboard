@@ -22,7 +22,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 
-# ─── Feature Preparation ─────────────────────────────────────────────────────
+# Feature Preparation
 
 FEATURE_COLUMNS = [
     "literacy_rate", "female_literacy", "gender_literacy_gap",
@@ -75,12 +75,12 @@ def prepare_features(df, features=None, target=None, test_size=0.25, random_stat
     mask = X.notna().all(axis=1) & y.notna()
     X, y = X[mask], y[mask]
 
-    # ── STEP 1: Split FIRST before any scaling ───────────────────────────────
+    # STEP 1: Split FIRST before any scaling
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=random_state
     )
 
-    # ── STEP 2: Fit scaler on train only, transform both ────────────────────
+    # STEP 2: Fit scaler on train only, transform both
     scaler = StandardScaler()
     X_train_scaled = pd.DataFrame(
         scaler.fit_transform(X_train),   # fit + transform on train only
@@ -108,7 +108,7 @@ def prepare_features(df, features=None, target=None, test_size=0.25, random_stat
     }
 
 
-# ─── Model Training ──────────────────────────────────────────────────────────
+# Model Training
 
 def train_linear(X_train, y_train):
     """
@@ -188,7 +188,7 @@ def find_best_alpha(X_train, y_train, alphas=None):
     return best_alpha, pd.DataFrame(results)
 
 
-# ─── Model Evaluation ────────────────────────────────────────────────────────
+# Model Evaluation
 
 def evaluate_model(model, X_test, y_test, model_name="Model"):
     """
@@ -216,7 +216,7 @@ def evaluate_model(model, X_test, y_test, model_name="Model"):
     return metrics
 
 
-# ─── Visualization ───────────────────────────────────────────────────────────
+# Visualization
 
 def plot_predictions(y_test, y_pred, model_name="Model", save_path=None):
     """Scatter plot: Actual vs Predicted poverty headcount."""

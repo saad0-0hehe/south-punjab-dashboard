@@ -29,11 +29,9 @@ from src.eda import (
 import matplotlib
 matplotlib.use("Agg")  # Non-interactive backend for script
 
-# ─── Step 1: Load & Clean Data ───────────────────────────────────────────────
+# Step 1: Load & Clean Data
 
-print("=" * 60)
 print("STEP 1: Loading and Cleaning Data")
-print("=" * 60)
 
 df = load_data()
 df = clean_data(df)
@@ -43,11 +41,10 @@ print(f"Columns: {list(df.columns)}")
 print(f"\nRegion distribution:")
 print(df["region"].value_counts())
 
-# ─── Step 2: Summary Statistics ───────────────────────────────────────────────
+# Step 2: Summary Statistics
 
 print("\n" + "=" * 60)
 print("STEP 2: Summary Statistics — South Punjab vs Rest of Punjab")
-print("=" * 60)
 
 summary = get_summary_stats(df)
 print(summary.to_string())
@@ -58,11 +55,10 @@ print(f"Rest of Punjab Average Literacy: {df[df['region'] == 'Rest of Punjab']['
 print(f"\nSouth Punjab Average Poverty:   {sp['poverty_headcount'].mean():.1f}%")
 print(f"Rest of Punjab Average Poverty:  {df[df['region'] == 'Rest of Punjab']['poverty_headcount'].mean():.1f}%")
 
-# ─── Step 3: Generate Visualizations ─────────────────────────────────────────
+# Step 3: Generate Visualizations
 
 print("\n" + "=" * 60)
 print("STEP 3: Generating Visualizations")
-print("=" * 60)
 
 # Create output directory
 output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outputs")
@@ -92,6 +88,4 @@ import matplotlib.pyplot as plt
 plt.close("all")
 
 print(f"\n✅ All charts saved to: {output_dir}")
-print("=" * 60)
 print("EDA COMPLETE!")
-print("=" * 60)

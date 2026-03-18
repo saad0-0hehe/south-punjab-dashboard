@@ -34,7 +34,7 @@ from src.ml_model import (
     evaluate_model, plot_predictions, plot_feature_importance, plot_residuals
 )
 
-# ─── Page Config ──────────────────────────────────────────────────────────────
+# Page Config
 
 st.set_page_config(
     page_title="South Punjab Development Dashboard",
@@ -43,7 +43,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ─── Premium CSS ──────────────────────────────────────────────────────────────
+# Premium CSS
 
 st.markdown("""
 <style>
@@ -316,7 +316,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ─── Helper: Custom Metric Card ──────────────────────────────────────────────
+# Helper: Custom Metric Card
 
 def metric_card(label, value, delta=None, delta_type="neutral", color="blue"):
     """Render a styled metric card."""
@@ -332,7 +332,7 @@ def metric_card(label, value, delta=None, delta_type="neutral", color="blue"):
     """, unsafe_allow_html=True)
 
 
-# ─── Load Data (cached) ──────────────────────────────────────────────────────
+# Load Data (cached)
 
 @st.cache_data
 def load_and_clean():
@@ -363,7 +363,7 @@ df = load_and_clean()
 sp_df = filter_south_punjab(df)
 rest_df = filter_rest_of_punjab(df)
 
-# ─── Pre-compute dynamic insights (used across pages) ────────────────────────
+# Pre-compute dynamic insights (used across pages)
 _worst_lit   = df.loc[df["literacy_rate"].idxmin()]
 _best_lit    = df.loc[df["literacy_rate"].idxmax()]
 _worst_pov   = df.loc[df["poverty_headcount"].idxmax()]
@@ -380,7 +380,7 @@ _sp_enroll_ratio = (sp_df["middle_enrollment_rate"].mean() /
                     sp_df["primary_enrollment_rate"].mean() * 100)
 
 
-# ─── Sidebar ─────────────────────────────────────────────────────────────────
+# Sidebar
 
 with st.sidebar:
     st.markdown("""
@@ -439,9 +439,7 @@ with st.sidebar:
     """, unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 # PAGE 1: OVERVIEW
-# ═══════════════════════════════════════════════════════════════════════════════
 
 if page == "🏠 Overview":
     st.markdown("""
@@ -480,7 +478,7 @@ if page == "🏠 Overview":
 
     st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
 
-    # ── Dynamic insight ───────────────────────────────────────────────────────
+    # Dynamic insight
     st.markdown(f"""
     <div class="insight-box">
         💡 <strong>Key Insight:</strong> The most impoverished district is
@@ -521,9 +519,7 @@ if page == "🏠 Overview":
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 # PAGE 2: DISTRICT PROFILES
-# ═══════════════════════════════════════════════════════════════════════════════
 
 elif page == "🏘️ District Profiles":
     st.markdown("""
@@ -604,9 +600,7 @@ elif page == "🏘️ District Profiles":
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 # PAGE 3: EDA
-# ═══════════════════════════════════════════════════════════════════════════════
 
 elif page == "📈 EDA":
     st.markdown("""
@@ -624,7 +618,7 @@ elif page == "📈 EDA":
     with tab1:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### District-wise Literacy Rates")
-        # ── Dynamic insight ───────────────────────────────────────────────────
+        # Dynamic insight
         st.markdown(f"""<div class="insight-box">
             💡 South Punjab districts cluster at the <strong>bottom</strong> of literacy rankings,
             with <strong>{_worst_lit['district']}</strong>
@@ -646,7 +640,7 @@ elif page == "📈 EDA":
     with tab2:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### District-wise Poverty Headcount")
-        # ── Dynamic insight ───────────────────────────────────────────────────
+        # Dynamic insight
         st.markdown(f"""<div class="insight-box">
             💡 <strong>{_sp_in_top10} out of the top 10</strong> most impoverished districts
             in Punjab belong to South Punjab, with DG Khan division being the worst affected.
@@ -666,7 +660,7 @@ elif page == "📈 EDA":
     with tab3:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### School Enrollment — South Punjab")
-        # ── Dynamic insight ───────────────────────────────────────────────────
+        # Dynamic insight
         st.markdown(f"""<div class="insight-box">
             💡 On average, only <strong>{_sp_enroll_ratio:.0f} out of 100</strong> primary
             students in South Punjab advance to middle school — a significant dropout gap
@@ -693,7 +687,7 @@ elif page == "📈 EDA":
     with tab4:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### Health Indicators — South Punjab")
-        # ── Dynamic insight ───────────────────────────────────────────────────
+        # Dynamic insight
         st.markdown(f"""<div class="insight-box">
             💡 <strong>{_worst_imm['district']}</strong> has the lowest immunization coverage
             ({_worst_imm['immunization_coverage']:.0f}%) and
@@ -709,7 +703,7 @@ elif page == "📈 EDA":
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### Correlation Matrix")
         _corr_val = df["literacy_rate"].corr(df["poverty_headcount"])
-        # ── Dynamic insight ───────────────────────────────────────────────────
+        # Dynamic insight
         st.markdown(f"""<div class="insight-box">
             💡 <strong>Literacy rate</strong> and <strong>poverty headcount</strong> show a strong
             negative correlation (r = {_corr_val:.2f}), confirming that education is the
@@ -728,9 +722,7 @@ elif page == "📈 EDA":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 # PAGE 4: ML PREDICTIONS
-# ═══════════════════════════════════════════════════════════════════════════════
 
 elif page == "🤖 ML Predictions":
     st.markdown("""
@@ -781,7 +773,7 @@ elif page == "🤖 ML Predictions":
         with m6: metric_card("RMSE",     f"{ridge_rmse:.2f}%",color="amber")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # ── Dynamic insight ───────────────────────────────────────────────────────
+    # Dynamic insight
     better_model = "Ridge" if ridge_r2 >= lr_r2 else "Linear"
     st.markdown(f"""
     <div class="insight-box">
@@ -824,7 +816,7 @@ elif page == "🤖 ML Predictions":
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### Ridge Alpha — LOOCV Results")
         st.caption("Scored using negative MSE (lower MSE = better). Best alpha highlighted.")
-        # ── Dynamically format columns to handle any cached version ──────────
+        # Dynamically format columns to handle any cached version
         fmt = {}
         for col in alpha_df.columns:
             if col == "alpha":
@@ -850,9 +842,7 @@ elif page == "🤖 ML Predictions":
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
 # PAGE 5: ABOUT
-# ═══════════════════════════════════════════════════════════════════════════════
 
 elif page == "ℹ️ About":
     st.markdown("""

@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import os
 
-# ─── Constants ────────────────────────────────────────────────────────────────
+# Constants
 
 SOUTH_PUNJAB_DISTRICTS = [
     "Multan", "Lodhran", "Khanewal", "Vehari",
@@ -32,7 +32,7 @@ NUMERIC_COLUMNS = [
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
 
 
-# ─── Data Loading ─────────────────────────────────────────────────────────────
+# Data Loading
 
 def load_data(filepath=None):
     """
@@ -62,7 +62,7 @@ def load_data(filepath=None):
     return df
 
 
-# ─── Data Cleaning ────────────────────────────────────────────────────────────
+# Data Cleaning
 
 def clean_data(df):
     """
@@ -128,7 +128,7 @@ def clean_data(df):
     return df
 
 
-# ─── Filtering ────────────────────────────────────────────────────────────────
+# Filtering
 
 def filter_south_punjab(df):
     """
@@ -175,7 +175,7 @@ def filter_rest_of_punjab(df):
     return rest_df
 
 
-# ─── Summary Statistics ───────────────────────────────────────────────────────
+# Summary Statistics
 
 def get_summary_stats(df, group_col="region"):
     """
@@ -260,13 +260,11 @@ def get_rankings(df, indicator, ascending=True):
     return ranked
 
 
-# ─── Main (for testing) ──────────────────────────────────────────────────────
+# Main (for testing)
 
 if __name__ == "__main__":
-    print("=" * 60)
-    print("South Punjab Development Dashboard — Data Loader Test")
-    print("=" * 60)
-    
+        print("South Punjab Development Dashboard — Data Loader Test")
+        
     # Load & clean
     df = load_data()
     df = clean_data(df)

@@ -30,11 +30,9 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-# ─── Step 1: Load & Prepare Data ─────────────────────────────────────────────
+# Step 1: Load & Prepare Data
 
-print("=" * 60)
 print("STEP 1: Loading and Preparing Data")
-print("=" * 60)
 
 df = load_data()
 df = clean_data(df)
@@ -46,11 +44,10 @@ feature_names = data["feature_names"]
 
 print(f"Features used: {feature_names}")
 
-# ─── Step 2: Train Models ────────────────────────────────────────────────────
+# Step 2: Train Models
 
 print("\n" + "=" * 60)
 print("STEP 2: Training Models")
-print("=" * 60)
 
 # Linear Regression
 lr_model = train_linear(X_train, y_train)
@@ -63,11 +60,10 @@ print(alpha_results.to_string(index=False))
 # Train Ridge with best alpha
 ridge_model = train_ridge(X_train, y_train, alpha=best_alpha)
 
-# ─── Step 3: Evaluate Models ─────────────────────────────────────────────────
+# Step 3: Evaluate Models
 
 print("\n" + "=" * 60)
 print("STEP 3: Evaluating Models")
-print("=" * 60)
 
 lr_metrics = evaluate_model(lr_model, X_test, y_test, "Linear Regression")
 ridge_metrics = evaluate_model(ridge_model, X_test, y_test, f"Ridge (α={best_alpha})")
@@ -78,11 +74,10 @@ print("-" * 34)
 for metric in ["r2", "mae", "rmse"]:
     print(f"{metric.upper():<12} {lr_metrics[metric]:>10.3f} {ridge_metrics[metric]:>10.3f}")
 
-# ─── Step 4: Generate Plots ──────────────────────────────────────────────────
+# Step 4: Generate Plots
 
 print("\n" + "=" * 60)
 print("STEP 4: Generating ML Visualizations")
-print("=" * 60)
 
 output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outputs")
 os.makedirs(output_dir, exist_ok=True)
@@ -117,6 +112,4 @@ print("  ✅ Ridge residual plot")
 plt.close("all")
 
 print(f"\n✅ All ML plots saved to: {output_dir}")
-print("=" * 60)
 print("ML MODELING COMPLETE!")
-print("=" * 60)

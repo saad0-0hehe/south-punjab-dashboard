@@ -12,7 +12,7 @@ import seaborn as sns
 import pandas as pd
 import numpy as np
 
-# ─── Style Configuration ─────────────────────────────────────────────────────
+# Style Configuration
 
 # Modern, clean color palette
 SOUTH_PUNJAB_COLOR = "#E63946"   # Red for South Punjab
@@ -47,7 +47,7 @@ def set_style():
     })
 
 
-# ─── 1. Literacy Rate Comparison ─────────────────────────────────────────────
+# 1. Literacy Rate Comparison
 
 def plot_literacy_comparison(df, save_path=None):
     """
@@ -93,7 +93,7 @@ def plot_literacy_comparison(df, save_path=None):
     return fig
 
 
-# ─── 2. Poverty Headcount Map ────────────────────────────────────────────────
+# 2. Poverty Headcount Map
 
 def plot_poverty_map(df, save_path=None):
     """
@@ -129,7 +129,7 @@ def plot_poverty_map(df, save_path=None):
     return fig
 
 
-# ─── 3. Gender Literacy Gap ──────────────────────────────────────────────────
+# 3. Gender Literacy Gap
 
 def plot_gender_gap(df, top_n=15, save_path=None):
     """
@@ -169,7 +169,7 @@ def plot_gender_gap(df, top_n=15, save_path=None):
     return fig
 
 
-# ─── 4. School Enrollment Comparison ─────────────────────────────────────────
+# 4. School Enrollment Comparison
 
 def plot_enrollment_trends(df, save_path=None):
     """
@@ -202,7 +202,7 @@ def plot_enrollment_trends(df, save_path=None):
     return fig
 
 
-# ─── 5. Health Indicators ────────────────────────────────────────────────────
+# 5. Health Indicators
 
 def plot_health_indicators(df, save_path=None):
     """
@@ -235,7 +235,7 @@ def plot_health_indicators(df, save_path=None):
     return fig
 
 
-# ─── 6. Correlation Heatmap ──────────────────────────────────────────────────
+# 6. Correlation Heatmap
 
 def plot_correlation_heatmap(df, save_path=None):
     """
@@ -271,7 +271,7 @@ def plot_correlation_heatmap(df, save_path=None):
     return fig
 
 
-# ─── 7. South Punjab vs Rest of Punjab ───────────────────────────────────────
+# 7. South Punjab vs Rest of Punjab
 
 def plot_south_vs_rest(df, save_path=None):
     """
@@ -313,7 +313,7 @@ def plot_south_vs_rest(df, save_path=None):
     return fig
 
 
-# ─── 8. Division-wise Comparison ──────────────────────────────────────────────
+# 8. Division-wise Comparison
 
 def plot_division_comparison(df, indicator="literacy_rate", save_path=None):
     """
@@ -343,7 +343,7 @@ def plot_division_comparison(df, indicator="literacy_rate", save_path=None):
     return fig
 
 
-# ─── 9. Scatter: Literacy vs Poverty ──────────────────────────────────────────
+# 9. Scatter: Literacy vs Poverty
 
 def plot_literacy_vs_poverty(df, save_path=None):
     """
