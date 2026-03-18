@@ -66,10 +66,7 @@ All district-level data is compiled from **official government and UN publicatio
 | Source | Indicators | Year |
 |--------|-----------|------|
 | **PBS Census 2023** | Population, literacy rates | 2023 |
-| **PSLM 2019-20** | Poverty headcount, enrollment, health access | 2019-20 |
-| **UNDP SDG Reports** | MPI scores | 2020 |
-| **DHS 2017-18** | Immunization coverage | 2017-18 |
-| **HDX** | National-level education & poverty trends | Various |
+
 
 Full citations: [`data/source_references.md`](data/source_references.md)
 
