@@ -2,7 +2,7 @@
 
 An interactive data analytics dashboard analyzing socioeconomic disparities across **11 South Punjab districts** compared to the rest of Punjab, Pakistan.
 
-> Built as a portfolio project for BS Data Science (4th Semester) — Air University, Islamabad (Layyah Campus)
+> Built as a portfolio project for BS Data Science (4th Semester) — Air University, Islamabad 
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red?logo=streamlit)
@@ -138,4 +138,4 @@ python notebooks/02_ml_modeling.py
 
 ## 👨‍💻 Author
 
-**BS Data Science Student** — Air University, Islamabad (Layyah Campus) — 4th Semester
+**BS Data Science Student** — Air University, Islamabad  — 4th Semester

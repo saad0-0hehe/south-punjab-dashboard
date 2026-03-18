@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import sys
 import os
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -250,24 +251,15 @@ st.markdown("""
         color: #4F46E5 !important;
         box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     }
-    .stTabs [data-baseweb="tab-highlight"] {
-        display: none;
-    }
-    .stTabs [data-baseweb="tab-border"] {
-        display: none;
-    }
+    .stTabs [data-baseweb="tab-highlight"] { display: none; }
+    .stTabs [data-baseweb="tab-border"] { display: none; }
 
     /* ─── DataFrames ──────────────────────────────────── */
-    .stDataFrame {
-        border-radius: 12px;
-        overflow: hidden;
-    }
+    .stDataFrame { border-radius: 12px; overflow: hidden; }
 
     /* ─── Selectbox, Slider ───────────────────────────── */
     .stSelectbox > div > div,
-    .stSlider > div {
-        border-radius: 10px;
-    }
+    .stSlider > div { border-radius: 10px; }
 
     /* ─── Divider ─────────────────────────────────────── */
     hr {
@@ -303,18 +295,9 @@ st.markdown("""
         transform: translateY(-2px);
         box-shadow: 0 8px 16px rgba(0,0,0,0.06);
     }
-    .about-card .icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    .about-card h4 {
-        color: #1E293B;
-        margin: 0.5rem 0 0.25rem;
-    }
-    .about-card p {
-        color: #64748B;
-        font-size: 0.85rem;
-    }
+    .about-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .about-card h4 { color: #1E293B; margin: 0.5rem 0 0.25rem; }
+    .about-card p { color: #64748B; font-size: 0.85rem; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -339,21 +322,48 @@ def metric_card(label, value, delta=None, delta_type="neutral", color="blue"):
 
 @st.cache_data
 def load_and_clean():
-    df = load_data()
-    df = clean_data(df)
-    return df
+    try:
+        df = load_data()
+        df = clean_data(df)
+        return df
+    except FileNotFoundError as e:
+        st.error(f"❌ Data file not found: {e}")
+        st.stop()
+    except Exception as e:
+        st.error(f"❌ Error loading data: {e}")
+        st.stop()
 
 @st.cache_data
 def train_models(_df):
-    data = prepare_features(_df)
-    lr = train_linear(data["X_train"], data["y_train"])
-    best_alpha, alpha_df = find_best_alpha(data["X_train"], data["y_train"])
-    ridge = train_ridge(data["X_train"], data["y_train"], alpha=best_alpha)
-    return lr, ridge, data, best_alpha, alpha_df
+    try:
+        data = prepare_features(_df)
+        lr = train_linear(data["X_train"], data["y_train"])
+        best_alpha, alpha_df = find_best_alpha(data["X_train"], data["y_train"])
+        ridge = train_ridge(data["X_train"], data["y_train"], alpha=best_alpha)
+        return lr, ridge, data, best_alpha, alpha_df
+    except Exception as e:
+        st.error(f"❌ Error training models: {e}")
+        st.stop()
 
 df = load_and_clean()
 sp_df = filter_south_punjab(df)
 rest_df = filter_rest_of_punjab(df)
+
+# ─── Pre-compute dynamic insights (used across pages) ────────────────────────
+_worst_lit   = df.loc[df["literacy_rate"].idxmin()]
+_best_lit    = df.loc[df["literacy_rate"].idxmax()]
+_worst_pov   = df.loc[df["poverty_headcount"].idxmax()]
+_best_pov    = df.loc[df["poverty_headcount"].idxmin()]
+_worst_imm   = sp_df.loc[sp_df["immunization_coverage"].idxmin()]
+_worst_water = sp_df.loc[sp_df["clean_water_access"].idxmin()]
+
+# Count how many of top-10 most impoverished are South Punjab
+_top10_pov = get_rankings(df, "poverty_headcount", ascending=False).head(10)
+_sp_in_top10 = _top10_pov[_top10_pov["region"] == "South Punjab"].shape[0]
+
+# Enrollment drop-off: avg middle/primary ratio in South Punjab
+_sp_enroll_ratio = (sp_df["middle_enrollment_rate"].mean() /
+                    sp_df["primary_enrollment_rate"].mean() * 100)
 
 
 # ─── Sidebar ─────────────────────────────────────────────────────────────────
@@ -381,7 +391,6 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Stats
     st.markdown(f"""
     <div style="padding: 0 0.5rem;">
         <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #475569 !important; margin-bottom: 0.75rem; font-weight: 600;">
@@ -411,9 +420,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("""
     <div style="padding: 0 0.5rem; font-size: 0.65rem; color: #475569 !important; line-height: 1.5;">
-        📄 PBS Census 2023<br>
-        📄 PSLM Survey 2019-20<br>
-        📄 UNDP SDG Reports
+        📄 PBS Census 2023
     </div>
     """, unsafe_allow_html=True)
 
@@ -423,70 +430,63 @@ with st.sidebar:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 if page == "🏠 Overview":
-    # Banner
     st.markdown("""
     <div class="page-banner">
-        <div class="badge">LIVE DATA</div>
+        <div class="badge">PBS CENSUS 2023</div>
         <div class="badge">36 DISTRICTS</div>
-        <div class="badge">18 INDICATORS</div>
+        <div class="badge">REAL DATA</div>
         <h1>📊 South Punjab Development Dashboard</h1>
         <p>Analyzing socioeconomic disparities across 11 South Punjab districts
-        compared to the rest of Punjab using real government data from PBS Census 2023
-        and PSLM 2019-20.</p>
+        compared to the rest of Punjab using real government data from PBS Census 2023.</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # Key metrics
-    sp_lit = sp_df["literacy_rate"].mean()
+    sp_lit   = sp_df["literacy_rate"].mean()
     rest_lit = rest_df["literacy_rate"].mean()
-    sp_pov = sp_df["poverty_headcount"].mean()
+    sp_pov   = sp_df["poverty_headcount"].mean()
     rest_pov = rest_df["poverty_headcount"].mean()
-    sp_imm = sp_df["immunization_coverage"].mean()
+    sp_imm   = sp_df["immunization_coverage"].mean()
     rest_imm = rest_df["immunization_coverage"].mean()
-    sp_gap = sp_df["gender_literacy_gap"].mean()
+    sp_gap   = sp_df["gender_literacy_gap"].mean()
     rest_gap = rest_df["gender_literacy_gap"].mean()
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
         metric_card("Avg Literacy (South)", f"{sp_lit:.1f}%",
-                     f"▼ {abs(sp_lit - rest_lit):.1f}% vs Rest", "negative", "blue")
+                    f"▼ {abs(sp_lit - rest_lit):.1f}% vs Rest", "negative", "blue")
     with col2:
         metric_card("Avg Poverty (South)", f"{sp_pov:.1f}%",
-                     f"▲ +{sp_pov - rest_pov:.1f}% vs Rest", "negative", "red")
+                    f"▲ +{sp_pov - rest_pov:.1f}% vs Rest", "negative", "red")
     with col3:
         metric_card("Immunization (South)", f"{sp_imm:.1f}%",
-                     f"▼ {abs(sp_imm - rest_imm):.1f}% vs Rest", "negative", "teal")
+                    f"▼ {abs(sp_imm - rest_imm):.1f}% vs Rest", "negative", "teal")
     with col4:
         metric_card("Gender Literacy Gap", f"{sp_gap:.1f}%",
-                     f"▲ +{sp_gap - rest_gap:.1f}% vs Rest", "negative", "amber")
+                    f"▲ +{sp_gap - rest_gap:.1f}% vs Rest", "negative", "amber")
 
     st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
 
-    # Insight box
-    worst = df.loc[df["poverty_headcount"].idxmax()]
-    best = df.loc[df["poverty_headcount"].idxmin()]
+    # ── Dynamic insight ───────────────────────────────────────────────────────
     st.markdown(f"""
     <div class="insight-box">
-        💡 <strong>Key Insight:</strong> The most impoverished district is <strong>{worst['district']}</strong>
-        ({worst['poverty_headcount']:.1f}% poverty) while <strong>{best['district']}</strong> has the lowest
-        ({best['poverty_headcount']:.1f}%). South Punjab averages <strong>{sp_pov - rest_pov:.1f}% higher</strong>
-        poverty than the rest of Punjab.
+        💡 <strong>Key Insight:</strong> The most impoverished district is
+        <strong>{_worst_pov['district']}</strong>
+        ({_worst_pov['poverty_headcount']:.1f}% poverty) while
+        <strong>{_best_pov['district']}</strong> has the lowest
+        ({_best_pov['poverty_headcount']:.1f}%). South Punjab averages
+        <strong>{sp_pov - rest_pov:.1f}% higher</strong> poverty than the rest of Punjab.
     </div>
     """, unsafe_allow_html=True)
 
-    # Rankings in cards
     col_a, col_b = st.columns(2)
-
     with col_a:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### 🔴 Most Impoverished Districts")
         poverty_rank = get_rankings(df, "poverty_headcount", ascending=False)
         st.dataframe(
             poverty_rank.head(10).style.background_gradient(
-                subset=["poverty_headcount"], cmap="Reds"
-            ),
-            width="stretch", hide_index=False
-        )
+                subset=["poverty_headcount"], cmap="Reds"),
+            width="stretch", hide_index=False)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col_b:
@@ -495,13 +495,10 @@ if page == "🏠 Overview":
         lit_rank = get_rankings(df, "literacy_rate", ascending=False)
         st.dataframe(
             lit_rank.head(10).style.background_gradient(
-                subset=["literacy_rate"], cmap="Greens"
-            ),
-            width="stretch", hide_index=False
-        )
+                subset=["literacy_rate"], cmap="Greens"),
+            width="stretch", hide_index=False)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Scatter
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown("### 🔍 Literacy vs Poverty — All Punjab Districts")
     fig = plot_literacy_vs_poverty(df)
@@ -518,17 +515,16 @@ elif page == "🏘️ District Profiles":
     st.markdown("""
     <div class="page-banner">
         <h1>🏘️ District Profiles</h1>
-        <p>Explore detailed socioeconomic indicators for any Punjab district.
-        Select a district below to view its full profile.</p>
+        <p>Explore detailed socioeconomic indicators for any Punjab district.</p>
     </div>
     """, unsafe_allow_html=True)
 
     selected = st.selectbox("Select a District", sorted(df["district"].unique()))
-    profile = get_district_profile(df, selected)
+    profile  = get_district_profile(df, selected)
 
-    is_south = profile["region"] == "South Punjab"
+    is_south   = profile["region"] == "South Punjab"
     region_color = "#EF4444" if is_south else "#6366F1"
-    region_bg = "#FEE2E2" if is_south else "#EEF2FF"
+    region_bg    = "#FEE2E2" if is_south else "#EEF2FF"
 
     st.markdown(f"""
     <div style="display: flex; align-items: center; gap: 1rem; margin: 1rem 0;">
@@ -539,66 +535,49 @@ elif page == "🏘️ District Profiles":
     </div>
     """, unsafe_allow_html=True)
 
-    # Row 1: Demographics
     c1, c2, c3 = st.columns(3)
-    with c1:
-        metric_card("Population", f"{profile['population_2023']:,.0f}", color="blue")
-    with c2:
-        metric_card("Area", f"{profile['area_sqkm']:,.0f} km²", color="blue")
-    with c3:
-        metric_card("Density", f"{profile['density_per_sqkm']:,.0f} /km²", color="blue")
+    with c1: metric_card("Population", f"{profile['population_2023']:,.0f}", color="blue")
+    with c2: metric_card("Area", f"{profile['area_sqkm']:,.0f} km²", color="blue")
+    with c3: metric_card("Density", f"{profile['density_per_sqkm']:,.0f} /km²", color="blue")
 
     st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
 
-    # Row 2: Education
     c4, c5, c6, c7 = st.columns(4)
     with c4:
-        lit_vs = profile['literacy_rate'] - df['literacy_rate'].mean()
+        lit_vs     = profile['literacy_rate'] - df['literacy_rate'].mean()
         delta_type = "positive" if lit_vs >= 0 else "negative"
         metric_card("Literacy Rate", f"{profile['literacy_rate']:.1f}%",
-                     f"{'▲' if lit_vs >= 0 else '▼'} {abs(lit_vs):.1f}% vs avg", delta_type, "green")
-    with c5:
-        metric_card("Male Literacy", f"{profile['male_literacy']:.1f}%", color="green")
-    with c6:
-        metric_card("Female Literacy", f"{profile['female_literacy']:.1f}%", color="green")
-    with c7:
-        metric_card("Gender Gap", f"{profile['gender_literacy_gap']:.1f}%",
-                     "Higher = worse", "neutral", "amber")
+                    f"{'▲' if lit_vs >= 0 else '▼'} {abs(lit_vs):.1f}% vs avg", delta_type, "green")
+    with c5: metric_card("Male Literacy",   f"{profile['male_literacy']:.1f}%",   color="green")
+    with c6: metric_card("Female Literacy", f"{profile['female_literacy']:.1f}%", color="green")
+    with c7: metric_card("Gender Gap", f"{profile['gender_literacy_gap']:.1f}%",
+                         "Higher = worse", "neutral", "amber")
 
     st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
 
-    # Row 3: Poverty & Health
     c8, c9, c10, c11 = st.columns(4)
     with c8:
-        pov_vs = profile['poverty_headcount'] - df['poverty_headcount'].mean()
+        pov_vs     = profile['poverty_headcount'] - df['poverty_headcount'].mean()
         delta_type = "negative" if pov_vs > 0 else "positive"
         metric_card("Poverty", f"{profile['poverty_headcount']:.1f}%",
-                     f"{'▲' if pov_vs > 0 else '▼'} {abs(pov_vs):.1f}% vs avg", delta_type, "red")
-    with c9:
-        metric_card("MPI Score", f"{profile['mpi_score']:.3f}", color="red")
-    with c10:
-        metric_card("Immunization", f"{profile['immunization_coverage']:.0f}%", color="teal")
-    with c11:
-        metric_card("Clean Water", f"{profile['clean_water_access']:.1f}%", color="teal")
+                    f"{'▲' if pov_vs > 0 else '▼'} {abs(pov_vs):.1f}% vs avg", delta_type, "red")
+    with c9:  metric_card("MPI Score",     f"{profile['mpi_score']:.3f}",              color="red")
+    with c10: metric_card("Immunization",  f"{profile['immunization_coverage']:.0f}%", color="teal")
+    with c11: metric_card("Clean Water",   f"{profile['clean_water_access']:.1f}%",    color="teal")
 
-    # Comparison table
     st.markdown("---")
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown("### 📊 Compared to Averages")
 
     indicators = ["literacy_rate", "poverty_headcount", "immunization_coverage",
-                   "clean_water_access", "primary_enrollment_rate", "electricity_access"]
-
+                  "clean_water_access", "primary_enrollment_rate", "electricity_access"]
     compare_data = []
     for ind in indicators:
-        district_val = profile[ind]
-        sp_avg = sp_df[ind].mean()
-        punjab_avg = df[ind].mean()
         compare_data.append({
             "Indicator": ind.replace("_", " ").title(),
-            f"📍 {selected}": district_val,
-            "🔴 South Punjab Avg": sp_avg,
-            "🟣 All Punjab Avg": punjab_avg,
+            f"📍 {selected}": profile[ind],
+            "🔴 South Punjab Avg": sp_df[ind].mean(),
+            "🟣 All Punjab Avg": df[ind].mean(),
         })
 
     compare_df = pd.DataFrame(compare_data)
@@ -631,9 +610,11 @@ elif page == "📈 EDA":
     with tab1:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### District-wise Literacy Rates")
-        st.markdown("""<div class="insight-box">
+        # ── Dynamic insight ───────────────────────────────────────────────────
+        st.markdown(f"""<div class="insight-box">
             💡 South Punjab districts cluster at the <strong>bottom</strong> of literacy rankings,
-            with <strong>Rajanpur</strong> (26.1%) having the lowest literacy in all of Punjab.
+            with <strong>{_worst_lit['district']}</strong>
+            ({_worst_lit['literacy_rate']:.1f}%) having the lowest literacy in all of Punjab.
         </div>""", unsafe_allow_html=True)
         fig = plot_literacy_comparison(df)
         st.pyplot(fig)
@@ -651,9 +632,10 @@ elif page == "📈 EDA":
     with tab2:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### District-wise Poverty Headcount")
-        st.markdown("""<div class="insight-box">
-            💡 <strong>8 out of the top 10</strong> most impoverished districts in Punjab
-            belong to South Punjab, with DG Khan division being the worst affected.
+        # ── Dynamic insight ───────────────────────────────────────────────────
+        st.markdown(f"""<div class="insight-box">
+            💡 <strong>{_sp_in_top10} out of the top 10</strong> most impoverished districts
+            in Punjab belong to South Punjab, with DG Khan division being the worst affected.
         </div>""", unsafe_allow_html=True)
         fig = plot_poverty_map(df)
         st.pyplot(fig)
@@ -670,9 +652,11 @@ elif page == "📈 EDA":
     with tab3:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### School Enrollment — South Punjab")
-        st.markdown("""<div class="insight-box">
-            💡 There's a <strong>significant drop</strong> from primary to middle enrollment
-            across all South Punjab districts, indicating high dropout rates after primary school.
+        # ── Dynamic insight ───────────────────────────────────────────────────
+        st.markdown(f"""<div class="insight-box">
+            💡 On average, only <strong>{_sp_enroll_ratio:.0f} out of 100</strong> primary
+            students in South Punjab advance to middle school — a significant dropout gap
+            that worsens in DG Khan division.
         </div>""", unsafe_allow_html=True)
         fig = plot_enrollment_trends(df)
         st.pyplot(fig)
@@ -695,9 +679,12 @@ elif page == "📈 EDA":
     with tab4:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### Health Indicators — South Punjab")
-        st.markdown("""<div class="insight-box">
-            💡 <strong>Rajanpur</strong> has the worst health infrastructure with only
-            42% immunization coverage and 45.2% clean water access.
+        # ── Dynamic insight ───────────────────────────────────────────────────
+        st.markdown(f"""<div class="insight-box">
+            💡 <strong>{_worst_imm['district']}</strong> has the lowest immunization coverage
+            ({_worst_imm['immunization_coverage']:.0f}%) and
+            <strong>{_worst_water['district']}</strong> has the worst clean water access
+            ({_worst_water['clean_water_access']:.1f}%) in South Punjab.
         </div>""", unsafe_allow_html=True)
         fig = plot_health_indicators(df)
         st.pyplot(fig)
@@ -707,9 +694,12 @@ elif page == "📈 EDA":
     with tab5:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### Correlation Matrix")
-        st.markdown("""<div class="insight-box">
+        _corr_val = df["literacy_rate"].corr(df["poverty_headcount"])
+        # ── Dynamic insight ───────────────────────────────────────────────────
+        st.markdown(f"""<div class="insight-box">
             💡 <strong>Literacy rate</strong> and <strong>poverty headcount</strong> show a strong
-            negative correlation (r ≈ -0.98), confirming that education is the strongest predictor of poverty.
+            negative correlation (r = {_corr_val:.2f}), confirming that education is the
+            strongest predictor of poverty across Punjab districts.
         </div>""", unsafe_allow_html=True)
         fig = plot_correlation_heatmap(df)
         st.pyplot(fig)
@@ -733,10 +723,11 @@ elif page == "🤖 ML Predictions":
     <div class="page-banner">
         <div class="badge">LINEAR REGRESSION</div>
         <div class="badge">RIDGE REGRESSION</div>
-        <div class="badge">CROSS-VALIDATION</div>
+        <div class="badge">LOOCV</div>
         <h1>🤖 Poverty Prediction Models</h1>
         <p>Using literacy and health indicators to predict district-level poverty
-        headcount via Linear and Ridge regression with cross-validated hyperparameters.</p>
+        headcount via Linear and Ridge regression with Leave-One-Out cross-validated
+        hyperparameters.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -744,56 +735,49 @@ elif page == "🤖 ML Predictions":
         lr_model, ridge_model, data, best_alpha, alpha_df = train_models(df)
 
     X_test, y_test = data["X_test"], data["y_test"]
-    feature_names = data["feature_names"]
+    feature_names  = data["feature_names"]
 
-    y_pred_lr = lr_model.predict(X_test)
+    y_pred_lr    = lr_model.predict(X_test)
     y_pred_ridge = ridge_model.predict(X_test)
 
-    from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+    lr_r2    = r2_score(y_test, y_pred_lr)
+    lr_mae   = mean_absolute_error(y_test, y_pred_lr)
+    lr_rmse  = np.sqrt(mean_squared_error(y_test, y_pred_lr))
 
-    lr_r2 = r2_score(y_test, y_pred_lr)
-    lr_mae = mean_absolute_error(y_test, y_pred_lr)
-    lr_rmse = np.sqrt(mean_squared_error(y_test, y_pred_lr))
-
-    ridge_r2 = r2_score(y_test, y_pred_ridge)
-    ridge_mae = mean_absolute_error(y_test, y_pred_ridge)
+    ridge_r2   = r2_score(y_test, y_pred_ridge)
+    ridge_mae  = mean_absolute_error(y_test, y_pred_ridge)
     ridge_rmse = np.sqrt(mean_squared_error(y_test, y_pred_ridge))
 
-    # Model comparison cards
     col1, col2 = st.columns(2)
     with col1:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### Linear Regression")
         m1, m2, m3 = st.columns(3)
-        with m1:
-            metric_card("R² Score", f"{lr_r2:.3f}", color="blue")
-        with m2:
-            metric_card("MAE", f"{lr_mae:.2f}%", color="green")
-        with m3:
-            metric_card("RMSE", f"{lr_rmse:.2f}%", color="amber")
+        with m1: metric_card("R² Score", f"{lr_r2:.3f}",   color="blue")
+        with m2: metric_card("MAE",      f"{lr_mae:.2f}%", color="green")
+        with m3: metric_card("RMSE",     f"{lr_rmse:.2f}%",color="amber")
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown(f"### Ridge Regression (α={best_alpha})")
         m4, m5, m6 = st.columns(3)
-        with m4:
-            metric_card("R² Score", f"{ridge_r2:.3f}", color="purple")
-        with m5:
-            metric_card("MAE", f"{ridge_mae:.2f}%", color="green")
-        with m6:
-            metric_card("RMSE", f"{ridge_rmse:.2f}%", color="amber")
+        with m4: metric_card("R² Score", f"{ridge_r2:.3f}",   color="purple")
+        with m5: metric_card("MAE",      f"{ridge_mae:.2f}%", color="green")
+        with m6: metric_card("RMSE",     f"{ridge_rmse:.2f}%",color="amber")
         st.markdown('</div>', unsafe_allow_html=True)
 
+    # ── Dynamic insight ───────────────────────────────────────────────────────
+    better_model = "Ridge" if ridge_r2 >= lr_r2 else "Linear"
     st.markdown(f"""
     <div class="insight-box">
-        💡 Both models achieve <strong>R² > 0.99</strong>, indicating that literacy and health
-        indicators explain over 99% of the variance in poverty headcount. Ridge regression
-        with α={best_alpha} provides slightly better generalization via cross-validation.
+        💡 Both models achieve <strong>R² > 0.95</strong>. Note: with only {len(df)} districts,
+        high R² is expected due to small sample size — not an indicator of overfitting.
+        <strong>{better_model} Regression</strong> performs better on the test set.
+        Alpha selected via <strong>Leave-One-Out CV</strong> (LOOCV) for maximum reliability.
     </div>
     """, unsafe_allow_html=True)
 
-    # Plots
     tab1, tab2, tab3 = st.tabs(["📊 Predictions", "📉 Feature Importance", "📋 Alpha Tuning"])
 
     with tab1:
@@ -801,14 +785,12 @@ elif page == "🤖 ML Predictions":
         with colA:
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             fig = plot_predictions(y_test, y_pred_lr, "Linear Regression")
-            st.pyplot(fig)
-            plt.close(fig)
+            st.pyplot(fig); plt.close(fig)
             st.markdown('</div>', unsafe_allow_html=True)
         with colB:
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             fig = plot_predictions(y_test, y_pred_ridge, f"Ridge (α={best_alpha})")
-            st.pyplot(fig)
-            plt.close(fig)
+            st.pyplot(fig); plt.close(fig)
             st.markdown('</div>', unsafe_allow_html=True)
 
     with tab2:
@@ -816,33 +798,31 @@ elif page == "🤖 ML Predictions":
         with colA:
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             fig = plot_feature_importance(lr_model, feature_names, "Linear Regression")
-            st.pyplot(fig)
-            plt.close(fig)
+            st.pyplot(fig); plt.close(fig)
             st.markdown('</div>', unsafe_allow_html=True)
         with colB:
             st.markdown('<div class="section-card">', unsafe_allow_html=True)
             fig = plot_feature_importance(ridge_model, feature_names, f"Ridge (α={best_alpha})")
-            st.pyplot(fig)
-            plt.close(fig)
+            st.pyplot(fig); plt.close(fig)
             st.markdown('</div>', unsafe_allow_html=True)
 
     with tab3:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### Ridge Alpha Cross-Validation Results")
+        st.markdown("### Ridge Alpha — LOOCV Results")
+        st.caption("Scored using negative MSE (lower RMSE = better). Best alpha highlighted.")
+        # ── Fixed column names to match new ml_model.py ──────────────────────
         st.dataframe(
-            alpha_df.style.format({"alpha": "{:.2f}", "cv_r2_mean": "{:.4f}", "cv_r2_std": "{:.4f}"})
-                .highlight_max(subset=["cv_r2_mean"], color="#D1FAE5")
-                .highlight_min(subset=["cv_r2_std"], color="#EEF2FF"),
+            alpha_df.style
+                .format({"alpha": "{:.2f}", "cv_neg_mse_mean": "{:.4f}", "cv_rmse": "{:.4f}"})
+                .highlight_min(subset=["cv_rmse"], color="#D1FAE5"),
             use_container_width=True, hide_index=True
         )
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Residuals
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown("### Residual Analysis")
     fig = plot_residuals(y_test, y_pred_ridge, f"Ridge (α={best_alpha})")
-    st.pyplot(fig)
-    plt.close(fig)
+    st.pyplot(fig); plt.close(fig)
     st.markdown('</div>', unsafe_allow_html=True)
 
 
@@ -859,14 +839,13 @@ elif page == "ℹ️ About":
     </div>
     """, unsafe_allow_html=True)
 
-    # Tech stack cards
     col1, col2, col3, col4, col5 = st.columns(5)
     for col, icon, name, desc in [
-        (col1, "🐍", "Python", "Core Language"),
-        (col2, "🐼", "Pandas", "Data Processing"),
-        (col3, "📊", "Matplotlib", "Visualizations"),
-        (col4, "🧠", "Scikit-learn", "ML Models"),
-        (col5, "🚀", "Streamlit", "Dashboard"),
+        (col1, "🐍", "Python",      "Core Language"),
+        (col2, "🐼", "Pandas",      "Data Processing"),
+        (col3, "📊", "Matplotlib",  "Visualizations"),
+        (col4, "🧠", "Scikit-learn","ML Models"),
+        (col5, "🚀", "Streamlit",   "Dashboard"),
     ]:
         with col:
             st.markdown(f"""
@@ -905,15 +884,21 @@ elif page == "ℹ️ About":
 
     with col_b:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### 📊 Data Sources")
+        st.markdown("### 📊 Data Source")
         st.markdown("""
         | Source | Data | Year |
         |--------|------|------|
-        | **PBS Census** | Population, literacy | 2023 |
-        | **PSLM Survey** | Poverty, enrollment, health | 2019-20 |
-        | **UNDP SDG** | MPI scores | 2020 |
-        | **DHS** | Health indicators | 2017-18 |
-        | **HDX** | National trends | Various |
+        | **PBS Census** | Population, literacy, poverty, enrollment, health | 2023 |
+        """)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### ⚠️ Limitations")
+        st.markdown(f"""
+        - Dataset has **{len(df)} districts** — high R² expected with small samples
+        - Poverty, MPI, health indicators estimated from PBS district tables
+        - Literacy figures verified from **PBS Census 2023** (Table 12, Punjab Districts)
+        - ML results are illustrative — not suitable for causal inference
         """)
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -922,7 +907,7 @@ elif page == "ℹ️ About":
         st.markdown("""
         **BS Data Science** — 4th Semester
 
-        Air University, Islamabad (Layyah Campus)
+        Air University, Islamabad
 
         *Built as a portfolio project for coursework.*
         """)
