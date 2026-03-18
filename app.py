@@ -809,14 +809,24 @@ elif page == "🤖 ML Predictions":
     with tab3:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### Ridge Alpha — LOOCV Results")
-        st.caption("Scored using negative MSE (lower RMSE = better). Best alpha highlighted.")
-        # ── Fixed column names to match new ml_model.py ──────────────────────
-        st.dataframe(
-            alpha_df.style
-                .format({"alpha": "{:.2f}", "cv_neg_mse_mean": "{:.4f}", "cv_rmse": "{:.4f}"})
-                .highlight_min(subset=["cv_rmse"], color="#D1FAE5"),
-            use_container_width=True, hide_index=True
-        )
+        st.caption("Scored using negative MSE (lower MSE = better). Best alpha highlighted.")
+        # ── Dynamically format columns to handle any cached version ──────────
+        fmt = {}
+        for col in alpha_df.columns:
+            if col == "alpha":
+                fmt[col] = "{:.2f}"
+            else:
+                fmt[col] = "{:.4f}"
+        # Find a numeric column (not alpha) to highlight minimum
+        highlight_col = None
+        for candidate in ["cv_mse", "cv_rmse", "cv_neg_mse_mean"]:
+            if candidate in alpha_df.columns:
+                highlight_col = candidate
+                break
+        styled = alpha_df.style.format(fmt)
+        if highlight_col:
+            styled = styled.highlight_min(subset=[highlight_col], color="#D1FAE5")
+        st.dataframe(styled, use_container_width=True, hide_index=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
