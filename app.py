@@ -49,10 +49,22 @@ st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-    /* ─── Global ──────────────────────────────────────── */
-    html, body, [class*="st-"] {
+   /* ─── Global ──────────────────────────────────────── */
+    /* Remove the [class*="st-"] selector to prevent breaking native icons */
+    html, body {
         font-family: 'Inter', sans-serif;
     }
+    
+    /* Safely apply Inter to typical text elements instead of everything */
+    p, span, div, label {
+        font-family: 'Inter', sans-serif;
+    }
+    
+    /* Explicitly protect Streamlit's material icons */
+    .material-symbols-rounded, .material-symbols-outlined {
+        font-family: 'Material Symbols Rounded', 'Material Symbols Outlined', sans-serif !important;
+    }
+    
     .main .block-container {
         padding: 1.5rem 2rem 2rem;
         max-width: 1300px;
@@ -60,7 +72,9 @@ st.markdown("""
     .main { background: #F8FAFC; }
 
     /* ─── Hide default Streamlit branding ─────────────── */
-    #MainMenu, footer, header { visibility: hidden; }
+    #MainMenu { visibility: hidden; }
+    footer { visibility: hidden; }
+    header { background: transparent !important; }
 
     /* ─── Sidebar ─────────────────────────────────────── */
     section[data-testid="stSidebar"] {
