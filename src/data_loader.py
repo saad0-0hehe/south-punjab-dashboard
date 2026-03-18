@@ -263,7 +263,7 @@ def get_rankings(df, indicator, ascending=True):
 # Main (for testing)
 
 if __name__ == "__main__":
-        print("South Punjab Development Dashboard — Data Loader Test")
+    print("South Punjab Development Dashboard — Data Loader Test")
         
     # Load & clean
     df = load_data()
