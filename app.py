@@ -40,6 +40,12 @@ from src.ml_model import (
 from src.historical_viz import (
     plot_indicator_trends, plot_budget_comparison, plot_disparity_gap
 )
+from src.choropleth import plot_choropleth
+from src.plotly_charts import (
+    plot_radar, plot_bubble, plot_animated_scatter,
+    plot_budget_waterfall, plot_waterfall_all_years
+)
+from src.ml_explainer import compute_shap_values, plot_shap_summary, plot_shap_waterfall
 
 # Page Config
 
@@ -481,6 +487,23 @@ if page == "🏠 Overview":
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Choropleth Map ──────────────────────────────────────────────
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    map_indicator = st.selectbox(
+        "🗺️ Map Indicator",
+        ["poverty_headcount", "literacy_rate", "out_of_school_rate", "internet_access", "immunization_coverage"],
+        format_func=lambda x: x.replace("_", " ").title(),
+        key="map_indicator"
+    )
+    choropleth_fig = plot_choropleth(df, map_indicator)
+    if choropleth_fig:
+        st.plotly_chart(choropleth_fig, use_container_width=True)
+    else:
+        st.warning("GeoJSON file not found. Run `python data/raw/extract_geojson.py` to generate it.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
+
     sp_lit   = sp_df["literacy_rate"].mean()
     rest_lit = rest_df["literacy_rate"].mean()
     sp_pov   = sp_df["poverty_headcount"].mean()
@@ -650,6 +673,14 @@ elif page == "🏘️ District Profiles":
                         f"{'▲' if oos_vs > 0 else '▼'} {abs(oos_vs):.1f}% vs avg", delta_type, "red")
 
     st.markdown("---")
+
+    # ── Radar Chart ─────────────────────────────────────────────────
+    st.markdown('<div class="section-card">', unsafe_allow_html=True)
+    st.markdown("### 🕸️ District Performance Radar")
+    radar_fig = plot_radar(df, selected, SOUTH_PUNJAB_DISTRICTS)
+    st.plotly_chart(radar_fig, use_container_width=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown("### 📊 Compared to Averages")
 
@@ -724,6 +755,17 @@ elif page == "📈 EDA":
         fig = plot_poverty_map(df)
         st.pyplot(fig)
         plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        # ── Bubble Chart ────────────────────────────────────────────
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### 🫧 Literacy vs Poverty Bubble Chart")
+        st.markdown("""<div class="insight-box">
+            💡 Bubble size = district population. Color = administrative division.
+            The dashed trendline confirms the strong negative correlation between literacy and poverty.
+        </div>""", unsafe_allow_html=True)
+        bubble_fig = plot_bubble(df)
+        st.plotly_chart(bubble_fig, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
@@ -902,6 +944,14 @@ elif page == "📅 Temporal Trends":
                 fig_gap.tight_layout()
                 st.pyplot(fig_gap)
                 plt.close(fig_gap)
+
+            # ── Animated Scatter ─────────────────────────────────────
+            st.markdown("### 🎬 Animated District Movement")
+            st.caption("Press ▶ Play to watch districts evolve across survey years.")
+            anim_fig = plot_animated_scatter(df_hist, indicator, SOUTH_PUNJAB_DISTRICTS)
+            if anim_fig:
+                st.plotly_chart(anim_fig, use_container_width=True)
+
             st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.error("Historical data file not found.")
@@ -923,6 +973,18 @@ elif page == "💰 Budget Accountability":
     current_budget = df_budget_real if adj else df_budget_nom
     
     if current_budget is not None:
+        # ── Waterfall Chart ───────────────────────────────────────
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### 🌊 Budget Utilization Waterfall")
+        year_to_view = st.slider("Select Year to view flow:", 
+                                 min_value=int(current_budget["year"].min()), 
+                                 max_value=int(current_budget["year"].max()), 
+                                 value=int(current_budget["year"].max()))
+        waterfall_fig = plot_budget_waterfall(current_budget, year_to_view, "South Punjab", use_real=adj)
+        if waterfall_fig:
+            st.plotly_chart(waterfall_fig, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+
         val_col = "allocation_real_bn" if adj else "allocation_pkr_bn"
         exp_col = "expenditure_real_bn" if adj else "expenditure_pkr_bn"
         
@@ -1019,7 +1081,7 @@ elif page == "🤖 ML Predictions":
     </div>
     """, unsafe_allow_html=True)
 
-    tab1, tab2, tab3 = st.tabs(["📊 Predictions", "📉 Feature Importance", "📋 Alpha Tuning"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📊 Predictions", "📉 Feature Importance", "📋 Alpha Tuning", "🧩 Interpretability (SHAP)"])
 
     with tab1:
         colA, colB = st.columns(2)
@@ -1075,6 +1137,31 @@ elif page == "🤖 ML Predictions":
     fig = plot_residuals(y_test, y_pred_ridge, f"Ridge (α={best_alpha})")
     st.pyplot(fig); plt.close(fig)
     st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab4:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Model Interpretability (SHAP)")
+        st.markdown("""<div class="insight-box">
+            💡 SHAP values show how much each feature contributed to the predicted poverty level.
+        </div>""", unsafe_allow_html=True)
+        shap_values = compute_shap_values(lr_model, data["X_train"], X_test, feature_names)
+        
+        # Summary Plot
+        st.markdown("#### Global Summary: What drives poverty?")
+        st.pyplot(plot_shap_summary(shap_values))
+        
+        st.markdown("---")
+        
+        # Single District Explanation
+        st.markdown("#### Explain a Single District")
+        districts_in_test = df.loc[y_test.index, "district"].tolist()
+        dist_to_explain = st.selectbox("Select District from Test Set:", districts_in_test)
+        idx = districts_in_test.index(dist_to_explain)
+        
+        st.pyplot(plot_shap_waterfall(shap_values, idx, dist_to_explain))
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
 
 
 # PAGE 7: ABOUT

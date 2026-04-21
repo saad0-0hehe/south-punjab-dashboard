@@ -213,7 +213,7 @@ def clean_data(df):
             median_val = df[col].median()
             n_missing = df[col].isna().sum()
             df[col] = df[col].fillna(median_val)
-            print(f"⚠️  Filled {n_missing} missing values in '{col}' with median ({median_val:.2f})")
+            print(f"[WARN] Filled {n_missing} missing values in '{col}' with median ({median_val:.2f})")
     
     # 5. Add derived columns
     df["gender_literacy_gap"] = df["male_literacy"] - df["female_literacy"]
