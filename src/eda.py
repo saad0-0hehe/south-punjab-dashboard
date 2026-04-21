@@ -377,3 +377,199 @@ def plot_literacy_vs_poverty(df, save_path=None):
     if save_path:
         plt.savefig(save_path, bbox_inches="tight", dpi=150)
     return fig
+
+
+# 10. Out-of-School Rates
+
+def plot_out_of_school(df, save_path=None):
+    """
+    Horizontal bar chart: out-of-school rate by district, color-coded by region.
+    Shows the percentage of children aged 5-16 who are out of school.
+    """
+    set_style()
+    fig, ax = plt.subplots(figsize=(12, 10))
+    
+    if "out_of_school_rate" not in df.columns:
+        ax.text(0.5, 0.5, "Out-of-school data not available", 
+                ha="center", va="center", fontsize=14, transform=ax.transAxes)
+        return fig
+    
+    sorted_df = df.sort_values("out_of_school_rate", ascending=True)
+    colors = [SOUTH_PUNJAB_COLOR if r == "South Punjab" else REST_PUNJAB_COLOR 
+              for r in sorted_df["region"]]
+    
+    bars = ax.barh(sorted_df["district"], sorted_df["out_of_school_rate"], color=colors,
+                   edgecolor="white", linewidth=0.5, height=0.7)
+    
+    for bar, val in zip(bars, sorted_df["out_of_school_rate"]):
+        ax.text(bar.get_width() + 0.3, bar.get_y() + bar.get_height()/2,
+                f"{val:.1f}%", va="center", fontsize=9, color="#333")
+    
+    ax.set_xlabel("Out-of-School Rate (%)", fontsize=12, fontweight="bold")
+    ax.set_title("Children (5-16) Out of School — All Punjab Districts",
+                 fontsize=14, fontweight="bold", pad=15)
+    
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor=SOUTH_PUNJAB_COLOR, label="South Punjab"),
+        Patch(facecolor=REST_PUNJAB_COLOR, label="Rest of Punjab"),
+    ]
+    ax.legend(handles=legend_elements, loc="lower right", fontsize=10)
+    
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, bbox_inches="tight", dpi=150)
+    return fig
+
+
+# 11. Infrastructure Indicators
+
+def plot_infrastructure(df, save_path=None):
+    """
+    Grouped horizontal bars: sanitation, internet access, electricity for South Punjab.
+    """
+    set_style()
+    sp_df = df[df["region"] == "South Punjab"].sort_values("sanitation_access")
+    
+    fig, ax = plt.subplots(figsize=(12, 7))
+    
+    indicators = []
+    labels = []
+    colors_list = []
+    if "sanitation_access" in sp_df.columns:
+        indicators.append("sanitation_access")
+        labels.append("Sanitation")
+        colors_list.append("#2A9D8F")
+    if "internet_access" in sp_df.columns:
+        indicators.append("internet_access")
+        labels.append("Internet")
+        colors_list.append("#E76F51")
+    if "electricity_access" in sp_df.columns:
+        indicators.append("electricity_access")
+        labels.append("Electricity")
+        colors_list.append("#457B9D")
+    
+    if not indicators:
+        ax.text(0.5, 0.5, "Infrastructure data not available",
+                ha="center", va="center", fontsize=14, transform=ax.transAxes)
+        return fig
+    
+    y = np.arange(len(sp_df))
+    height = 0.8 / len(indicators)
+    
+    for i, (ind, label, color) in enumerate(zip(indicators, labels, colors_list)):
+        offset = (i - len(indicators)/2 + 0.5) * height
+        ax.barh(y + offset, sp_df[ind], height, label=label, color=color,
+                edgecolor="white", linewidth=0.5)
+    
+    ax.set_yticks(y)
+    ax.set_yticklabels(sp_df["district"])
+    ax.set_xlabel("Access (%)", fontsize=12, fontweight="bold")
+    ax.set_title("Infrastructure Access — South Punjab Districts",
+                 fontsize=14, fontweight="bold", pad=15)
+    ax.legend(loc="lower right")
+    ax.set_xlim(0, 105)
+    
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, bbox_inches="tight", dpi=150)
+    return fig
+
+
+# 12. Rural vs Urban Literacy
+
+def plot_rural_urban_literacy(df, save_path=None):
+    """
+    Grouped bar chart: rural vs urban literacy by district for South Punjab.
+    """
+    set_style()
+    
+    if "rural_literacy" not in df.columns or "urban_literacy" not in df.columns:
+        fig, ax = plt.subplots(figsize=(12, 7))
+        ax.text(0.5, 0.5, "Rural/Urban literacy data not available",
+                ha="center", va="center", fontsize=14, transform=ax.transAxes)
+        return fig
+    
+    sp_df = df[df["region"] == "South Punjab"].sort_values("rural_literacy", ascending=False)
+    
+    fig, ax = plt.subplots(figsize=(12, 7))
+    
+    x = np.arange(len(sp_df))
+    width = 0.35
+    
+    ax.bar(x - width/2, sp_df["urban_literacy"], width,
+           label="Urban Literacy", color="#457B9D", edgecolor="white")
+    ax.bar(x + width/2, sp_df["rural_literacy"], width,
+           label="Rural Literacy", color="#E63946", edgecolor="white")
+    
+    ax.set_xticks(x)
+    ax.set_xticklabels(sp_df["district"], rotation=45, ha="right")
+    ax.set_ylabel("Literacy Rate (%)", fontsize=12, fontweight="bold")
+    ax.set_title("Urban vs Rural Literacy — South Punjab Districts",
+                 fontsize=14, fontweight="bold", pad=15)
+    ax.legend(loc="upper right")
+    ax.set_ylim(0, 90)
+    
+    # Add gap annotation
+    for i, (_, row) in enumerate(sp_df.iterrows()):
+        gap = row.get("rural_urban_literacy_gap", 0)
+        if pd.notna(gap):
+            mid = (row["urban_literacy"] + row["rural_literacy"]) / 2
+            ax.annotate(f"Δ{gap:.0f}%", xy=(i, mid), fontsize=8, ha="center",
+                        color="#E76F51", fontweight="bold")
+    
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, bbox_inches="tight", dpi=150)
+    return fig
+
+
+# 13. Temporal Comparison (2017 vs 2023)
+
+def plot_temporal_comparison(df, save_path=None):
+    """
+    Butterfly/diverging bar chart: literacy rate change from 2017 to 2023.
+    Positive = improvement, ordered by change magnitude.
+    """
+    set_style()
+    
+    if "literacy_change" not in df.columns:
+        fig, ax = plt.subplots(figsize=(12, 10))
+        ax.text(0.5, 0.5, "Historical literacy data not available",
+                ha="center", va="center", fontsize=14, transform=ax.transAxes)
+        return fig
+    
+    fig, ax = plt.subplots(figsize=(12, 10))
+    
+    sorted_df = df.sort_values("literacy_change", ascending=True)
+    colors = [SOUTH_PUNJAB_COLOR if r == "South Punjab" else REST_PUNJAB_COLOR
+              for r in sorted_df["region"]]
+    
+    bars = ax.barh(sorted_df["district"], sorted_df["literacy_change"], color=colors,
+                   edgecolor="white", linewidth=0.5, height=0.7)
+    
+    # Add value labels
+    for bar, val in zip(bars, sorted_df["literacy_change"]):
+        x_pos = bar.get_width() + 0.2 if val >= 0 else bar.get_width() - 0.2
+        ha = "left" if val >= 0 else "right"
+        ax.text(x_pos, bar.get_y() + bar.get_height()/2,
+                f"+{val:.1f}%" if val >= 0 else f"{val:.1f}%",
+                va="center", ha=ha, fontsize=9, color="#333")
+    
+    ax.axvline(x=0, color="black", linewidth=0.8, linestyle="-")
+    ax.set_xlabel("Literacy Rate Change (percentage points)", fontsize=12, fontweight="bold")
+    ax.set_title("Literacy Rate Change: 2017 → 2023",
+                 fontsize=14, fontweight="bold", pad=15)
+    
+    from matplotlib.patches import Patch
+    legend_elements = [
+        Patch(facecolor=SOUTH_PUNJAB_COLOR, label="South Punjab"),
+        Patch(facecolor=REST_PUNJAB_COLOR, label="Rest of Punjab"),
+    ]
+    ax.legend(handles=legend_elements, loc="lower right", fontsize=10)
+    
+    plt.tight_layout()
+    if save_path:
+        plt.savefig(save_path, bbox_inches="tight", dpi=150)
+    return fig
+

@@ -21,17 +21,24 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from src.data_loader import (
     load_data, clean_data, filter_south_punjab, filter_rest_of_punjab,
     get_summary_stats, get_district_profile, get_rankings,
+    load_historical_data, load_budget_data, override_2023_anchor,
     SOUTH_PUNJAB_DISTRICTS
 )
+from src import historical_analyzer
 from src.eda import (
     plot_literacy_comparison, plot_poverty_map, plot_gender_gap,
     plot_enrollment_trends, plot_health_indicators,
     plot_correlation_heatmap, plot_south_vs_rest,
-    plot_division_comparison, plot_literacy_vs_poverty
+    plot_division_comparison, plot_literacy_vs_poverty,
+    plot_out_of_school, plot_infrastructure,
+    plot_rural_urban_literacy, plot_temporal_comparison
 )
 from src.ml_model import (
     prepare_features, train_linear, train_ridge, find_best_alpha,
     evaluate_model, plot_predictions, plot_feature_importance, plot_residuals
+)
+from src.historical_viz import (
+    plot_indicator_trends, plot_budget_comparison, plot_disparity_gap
 )
 
 # Page Config
@@ -379,6 +386,14 @@ _sp_in_top10 = _top10_pov[_top10_pov["region"] == "South Punjab"].shape[0]
 _sp_enroll_ratio = (sp_df["middle_enrollment_rate"].mean() /
                     sp_df["primary_enrollment_rate"].mean() * 100)
 
+# New data-driven insights
+_sp_unemp = sp_df["unemployment_rate"].mean() if "unemployment_rate" in sp_df.columns else None
+_rest_unemp = rest_df["unemployment_rate"].mean() if "unemployment_rate" in rest_df.columns else None
+_sp_oos = sp_df["out_of_school_rate"].mean() if "out_of_school_rate" in sp_df.columns else None
+_rest_oos = rest_df["out_of_school_rate"].mean() if "out_of_school_rate" in rest_df.columns else None
+_sp_internet = sp_df["internet_access"].mean() if "internet_access" in sp_df.columns else None
+_rest_internet = rest_df["internet_access"].mean() if "internet_access" in rest_df.columns else None
+
 
 # Sidebar
 
@@ -399,9 +414,19 @@ with st.sidebar:
 
     page = st.radio(
         "Navigation",
-        ["🏠 Overview", "🏘️ District Profiles", "📈 EDA", "🤖 ML Predictions", "ℹ️ About"],
+        ["🏠 Overview", "🏘️ District Profiles", "📈 EDA", 
+         "📅 Temporal Trends", "💰 Budget Accountability",
+         "🤖 ML Predictions", "ℹ️ About"],
         label_visibility="collapsed"
     )
+
+    # Load Historical & Budget Data, then anchor 2023 values to master
+    df_hist = load_historical_data()
+    if df_hist is not None:
+        df_hist = override_2023_anchor(df_hist, df)
+    # Load budget (nominal and inflation adjusted)
+    df_budget_nom  = load_budget_data(adjust_for_inflation=False)
+    df_budget_real = load_budget_data(adjust_for_inflation=True)
 
     st.markdown("---")
 
@@ -434,7 +459,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("""
     <div style="padding: 0 0.5rem; font-size: 0.65rem; color: #475569 !important; line-height: 1.5;">
-        📄 PBS Census 2023
+        📄 PBS Census 2023 | PSLM | PB Budget
     </div>
     """, unsafe_allow_html=True)
 
@@ -445,11 +470,14 @@ if page == "🏠 Overview":
     st.markdown("""
     <div class="page-banner">
         <div class="badge">PBS CENSUS 2023</div>
+        <div class="badge">CENSUS 2017</div>
+        <div class="badge">PSLM 2019-20</div>
         <div class="badge">36 DISTRICTS</div>
-        <div class="badge">REAL DATA</div>
+        <div class="badge">43 INDICATORS</div>
         <h1>📊 South Punjab Development Dashboard</h1>
         <p>Analyzing socioeconomic disparities across 11 South Punjab districts
-        compared to the rest of Punjab using real government data from PBS Census 2023.</p>
+        compared to the rest of Punjab using real government data from
+        PBS Census 2023, PSLM surveys, and provincial budget archives.</p>
     </div>
     """, unsafe_allow_html=True)
 
@@ -476,6 +504,28 @@ if page == "🏠 Overview":
         metric_card("Gender Literacy Gap", f"{sp_gap:.1f}%",
                     f"▲ +{sp_gap - rest_gap:.1f}% vs Rest", "negative", "amber")
 
+    st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
+
+    # Second row of metrics — new data dimensions
+    col5, col6, col7, col8 = st.columns(4)
+    if _sp_unemp is not None:
+        with col5:
+            metric_card("Unemployment (South)", f"{_sp_unemp:.1f}%",
+                        f"▲ +{_sp_unemp - _rest_unemp:.1f}% vs Rest", "negative", "purple")
+    if _sp_oos is not None:
+        with col6:
+            metric_card("Out of School (South)", f"{_sp_oos:.1f}%",
+                        f"▲ +{_sp_oos - _rest_oos:.1f}% vs Rest", "negative", "red")
+    if _sp_internet is not None:
+        with col7:
+            metric_card("Internet Access (South)", f"{_sp_internet:.1f}%",
+                        f"▼ {abs(_sp_internet - _rest_internet):.1f}% vs Rest", "negative", "blue")
+    with col8:
+        sp_sanit = sp_df["sanitation_access"].mean() if "sanitation_access" in sp_df.columns else 0
+        rest_sanit = rest_df["sanitation_access"].mean() if "sanitation_access" in rest_df.columns else 0
+        metric_card("Sanitation (South)", f"{sp_sanit:.1f}%",
+                    f"▼ {abs(sp_sanit - rest_sanit):.1f}% vs Rest", "negative", "green")
+
     st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
 
     # Dynamic insight
@@ -486,7 +536,10 @@ if page == "🏠 Overview":
         ({_worst_pov['poverty_headcount']:.1f}% poverty) while
         <strong>{_best_pov['district']}</strong> has the lowest
         ({_best_pov['poverty_headcount']:.1f}%). South Punjab averages
-        <strong>{sp_pov - rest_pov:.1f}% higher</strong> poverty than the rest of Punjab.
+        <strong>{sp_pov - rest_pov:.1f}% higher</strong> poverty,
+        <strong>{_sp_unemp - _rest_unemp:.1f}% higher</strong> unemployment, and
+        <strong>{abs(_sp_internet - _rest_internet):.1f}% lower</strong> internet access
+        than the rest of Punjab.
     </div>
     """, unsafe_allow_html=True)
 
@@ -575,12 +628,35 @@ elif page == "🏘️ District Profiles":
     with c10: metric_card("Immunization",  f"{profile['immunization_coverage']:.0f}%", color="teal")
     with c11: metric_card("Clean Water",   f"{profile['clean_water_access']:.1f}%",    color="teal")
 
+    st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
+
+    # New indicators row
+    c12, c13, c14, c15 = st.columns(4)
+    if "unemployment_rate" in profile.index:
+        with c12:
+            unemp_vs = profile['unemployment_rate'] - df['unemployment_rate'].mean()
+            delta_type = "negative" if unemp_vs > 0 else "positive"
+            metric_card("Unemployment", f"{profile['unemployment_rate']:.1f}%",
+                        f"{'▲' if unemp_vs > 0 else '▼'} {abs(unemp_vs):.1f}% vs avg", delta_type, "purple")
+    if "sanitation_access" in profile.index:
+        with c13: metric_card("Sanitation",  f"{profile['sanitation_access']:.1f}%", color="green")
+    if "internet_access" in profile.index:
+        with c14: metric_card("Internet",    f"{profile['internet_access']:.1f}%",  color="blue")
+    if "out_of_school_rate" in profile.index:
+        with c15:
+            oos_vs = profile['out_of_school_rate'] - df['out_of_school_rate'].mean()
+            delta_type = "negative" if oos_vs > 0 else "positive"
+            metric_card("Out of School", f"{profile['out_of_school_rate']:.1f}%",
+                        f"{'▲' if oos_vs > 0 else '▼'} {abs(oos_vs):.1f}% vs avg", delta_type, "red")
+
     st.markdown("---")
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     st.markdown("### 📊 Compared to Averages")
 
-    indicators = ["literacy_rate", "poverty_headcount", "immunization_coverage",
-                  "clean_water_access", "primary_enrollment_rate", "electricity_access"]
+    indicators = ["literacy_rate", "poverty_headcount", "unemployment_rate",
+                  "immunization_coverage", "clean_water_access", "sanitation_access",
+                  "primary_enrollment_rate", "out_of_school_rate",
+                  "electricity_access", "internet_access"]
     compare_data = []
     for ind in indicators:
         compare_data.append({
@@ -611,8 +687,8 @@ elif page == "📈 EDA":
     </div>
     """, unsafe_allow_html=True)
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
-        "📚 Literacy", "💰 Poverty", "🏫 Education", "🏥 Health", "🔗 Correlations"
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        "📚 Literacy", "💰 Poverty", "🏫 Education", "🏥 Health", "🏗️ Infrastructure", "📅 Temporal", "🔗 Correlations"
     ])
 
     with tab1:
@@ -672,10 +748,24 @@ elif page == "📈 EDA":
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Out-of-School Children (5-16 years)")
+        if _sp_oos is not None:
+            st.markdown(f"""<div class="insight-box">
+                💡 South Punjab has an average out-of-school rate of <strong>{_sp_oos:.1f}%</strong>
+                compared to <strong>{_rest_oos:.1f}%</strong> in the rest of Punjab — a gap of
+                <strong>{_sp_oos - _rest_oos:.1f} percentage points</strong>.
+            </div>""", unsafe_allow_html=True)
+        fig = plot_out_of_school(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### Division-wise Comparison")
         indicator = st.selectbox(
             "Choose indicator",
-            ["primary_enrollment_rate", "middle_enrollment_rate", "literacy_rate"],
+            ["primary_enrollment_rate", "middle_enrollment_rate", "literacy_rate",
+             "out_of_school_rate", "unemployment_rate"],
             format_func=lambda x: x.replace("_", " ").title(),
             key="div_indicator"
         )
@@ -701,6 +791,44 @@ elif page == "📈 EDA":
 
     with tab5:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Infrastructure Access — South Punjab")
+        _sp_sanit = sp_df["sanitation_access"].mean() if "sanitation_access" in sp_df.columns else 0
+        _sp_inet = sp_df["internet_access"].mean() if "internet_access" in sp_df.columns else 0
+        st.markdown(f"""<div class="insight-box">
+            💡 South Punjab districts average only <strong>{_sp_sanit:.1f}%</strong> sanitation access
+            and <strong>{_sp_inet:.1f}%</strong> internet penetration. Districts like
+            <strong>Rajanpur</strong> and <strong>DG Khan</strong> are the worst affected.
+        </div>""", unsafe_allow_html=True)
+        fig = plot_infrastructure(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Rural vs Urban Literacy — South Punjab")
+        fig = plot_rural_urban_literacy(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab6:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
+        st.markdown("### Literacy Rate Change: 2017 → 2023")
+        if "literacy_change" in df.columns:
+            sp_change = sp_df["literacy_change"].mean()
+            rest_change = rest_df["literacy_change"].mean()
+            st.markdown(f"""<div class="insight-box">
+                💡 South Punjab literacy improved by an average of <strong>{sp_change:.1f} percentage points</strong>
+                from 2017 to 2023, compared to <strong>{rest_change:.1f} pp</strong> for the rest of Punjab.
+                While both regions improved, the gap remains significant.
+            </div>""", unsafe_allow_html=True)
+        fig = plot_temporal_comparison(df)
+        st.pyplot(fig)
+        plt.close(fig)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    with tab7:
+        st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### Correlation Matrix")
         _corr_val = df["literacy_rate"].corr(df["poverty_headcount"])
         # Dynamic insight
@@ -722,7 +850,114 @@ elif page == "📈 EDA":
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-# PAGE 4: ML PREDICTIONS
+# PAGE 4: TEMPORAL TRENDS
+
+elif page == "📅 Temporal Trends":
+    st.markdown("""
+    <div class="page-banner">
+        <h1>📅 Developmental Trends (2011–2023)</h1>
+        <p>Tracking the socioeconomic evolution across Survey Rounds and Census years.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if df_hist is not None:
+        indicator = st.selectbox(
+            "Select Indicator to Track",
+            ["literacy_rate", "poverty_headcount", "out_of_school_rate"],
+            format_func=lambda x: x.replace("_", " ").title()
+        )
+        
+        col1, col2 = st.columns([1, 4])
+        with col1:
+            st.markdown("### 📍 Highlight Districts")
+            selected_dists = st.multiselect(
+                "Choose districts to overlay",
+                options=sorted(df["district"].unique()),
+                default=["Multan", "Lahore"]
+            )
+            
+            # Growth metrics
+            growth_stats = historical_analyzer.get_growth_data(df_hist, indicator)
+            st.markdown("---")
+            st.markdown("**Top Improvers (CAGR %)**")
+            st.dataframe(growth_stats[["total_growth", "cagr"]].head(5), use_container_width=True)
+
+        with col2:
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            fig = plot_indicator_trends(df_hist, indicator, selected_dists, SOUTH_PUNJAB_DISTRICTS)
+            st.pyplot(fig)
+            plt.close(fig)
+            
+            # Historical Gap analysis — narrow chart below the main trends
+            st.markdown("### 📉 Regional Performance Gap Over Time")
+            gap_df = historical_analyzer.compare_historical_gaps(df_hist, indicator, SOUTH_PUNJAB_DISTRICTS)
+            if gap_df is not None and "gap" in gap_df.columns:
+                fig_gap, ax_gap = plt.subplots(figsize=(10, 3))
+                ax_gap.plot(gap_df.index, gap_df["gap"], marker='o', color="#94A3B8", linewidth=2)
+                ax_gap.axhline(0, color="#EF4444", linestyle="--", alpha=0.4)
+                ax_gap.fill_between(gap_df.index, gap_df["gap"], alpha=0.12, color="#94A3B8")
+                ax_gap.set_ylabel("Gap (Rest − South, pp)")
+                ax_gap.set_xlabel("Year")
+                ax_gap.grid(True, linestyle="--", alpha=0.3)
+                fig_gap.tight_layout()
+                st.pyplot(fig_gap)
+                plt.close(fig_gap)
+            st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        st.error("Historical data file not found.")
+
+
+# PAGE 5: BUDGET ACCOUNTABILITY
+
+elif page == "💰 Budget Accountability":
+    st.markdown("""
+    <div class="page-banner">
+        <h1>💰 Budget & Fiscal Accountability</h1>
+        <p>Analyzing the "White Papers": Comparing Promised Allocations vs. Actual Expenditure.</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    adj = st.toggle("🚀 Adjust for Inflation (Real Growth)", value=True, 
+                    help="Uses CPI (Consumer Price Index) to convert nominal PKR into constant 2015-16 values.")
+    
+    current_budget = df_budget_real if adj else df_budget_nom
+    
+    if current_budget is not None:
+        val_col = "allocation_real_bn" if adj else "allocation_pkr_bn"
+        exp_col = "expenditure_real_bn" if adj else "expenditure_pkr_bn"
+        
+        c1, c2 = st.columns(2)
+        with c1:
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.markdown("### Total Allocation Trends")
+            fig1 = plot_disparity_gap(current_budget, val_col)
+            st.pyplot(fig1)
+            plt.close(fig1)
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        with c2:
+            st.markdown('<div class="section-card">', unsafe_allow_html=True)
+            st.markdown("### Promised vs Actually Spent")
+            fig2 = plot_budget_comparison(current_budget, val_col)
+            st.pyplot(fig2)
+            plt.close(fig2)
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        st.markdown("---")
+        st.markdown("### 📊 Fiscal Performance Summary")
+        summary = historical_analyzer.get_budget_summary(current_budget)
+        # Choose column names dynamically based on inflation toggle
+        alloc_col = "allocation_real_bn" if adj and "allocation_real_bn" in summary.columns else "allocation_pkr_bn"
+        exp_col_fmt = "expenditure_real_bn" if adj and "expenditure_real_bn" in summary.columns else "expenditure_pkr_bn"
+        fmt_dict = {alloc_col: "{:,.1f} Bn", exp_col_fmt: "{:,.1f} Bn", "utilization_rate": "{:.1f}%"}
+        st.table(summary.style.format(fmt_dict))
+        
+        st.info("💡 **Revised Estimates**: Represent the actual funds released and spent by the end of the fiscal year, often revealing significant under-utilization in Southern districts compared to Central Punjab.")
+    else:
+        st.error("Budget data file not found.")
+
+
+# PAGE 6: ML PREDICTIONS
 
 elif page == "🤖 ML Predictions":
     st.markdown("""
@@ -842,7 +1077,7 @@ elif page == "🤖 ML Predictions":
     st.markdown('</div>', unsafe_allow_html=True)
 
 
-# PAGE 5: ABOUT
+# PAGE 7: ABOUT
 
 elif page == "ℹ️ About":
     st.markdown("""
@@ -880,6 +1115,8 @@ elif page == "ℹ️ About":
         st.markdown("""
         - Identify development gaps in South Punjab
         - Visualize literacy, poverty, health & education indicators
+        - Track 15-year developmental trends (2011-2023)
+        - Analyze budget allocations vs actual regional spending
         - Apply ML to understand poverty determinants
         - Create an interactive, explorable dashboard
         """)
@@ -898,20 +1135,27 @@ elif page == "ℹ️ About":
 
     with col_b:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### 📊 Data Source")
+        st.markdown("### 📊 Data Sources")
         st.markdown("""
         | Source | Data | Year |
         |--------|------|------|
-        | **PBS Census** | Population, literacy, poverty, enrollment, health | 2023 |
+        | **PBS Census Archive** | Population, literacy, urbanization (1998, 2017, 2023) | 1998-2023 |
+        | **PSLM Archive** | District literacy, enrollment, water/sanitation trends | 2010-2020 |
+        | **HIES Archive** | Household income, consumption, poverty trends | 2010-2025 |
+        | **Punjab P&D (ADP)** | Annual Development Programme budget allocations | 2015-2025 |
+        | **Punjab Finance** | White Papers: Revised Estimates vs Promised Budget | 2015-2025 |
+        | **UNDP/MPI** | Poverty headcount, MPI score | 2020 |
         """)
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### ⚠️ Limitations")
         st.markdown(f"""
-        - Dataset has **{len(df)} districts** — high R² expected with small samples
-        - Poverty, MPI, health indicators estimated from PBS district tables
+        - Dataset has **{len(df)} districts** × **{len(df.columns)} indicators** — high R² expected with small samples
+        - PSLM indicators (unemployment, sanitation, internet) are from 2019-20 district-level survey
+        - Poverty and MPI figures are from UNDP estimates
         - Literacy figures verified from **PBS Census 2023** (Table 12, Punjab Districts)
+        - Census 2017 data used for temporal comparison — 6-year gap
         - ML results are illustrative — not suitable for causal inference
         """)
         st.markdown('</div>', unsafe_allow_html=True)

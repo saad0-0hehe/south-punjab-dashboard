@@ -28,7 +28,9 @@ FEATURE_COLUMNS = [
     "literacy_rate", "female_literacy", "gender_literacy_gap",
     "primary_enrollment_rate", "middle_enrollment_rate",
     "immunization_coverage", "clean_water_access",
-    "electricity_access", "hospitals_per_100k"
+    "electricity_access", "hospitals_per_100k",
+    "unemployment_rate", "out_of_school_rate",
+    "sanitation_access", "rural_literacy", "internet_access",
 ]
 
 TARGET_COLUMN = "poverty_headcount"

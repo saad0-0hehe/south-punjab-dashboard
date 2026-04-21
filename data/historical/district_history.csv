@@ -1,0 +1,541 @@
+district,year,indicator,value,source
+Bahawalpur,2011,literacy_rate,41.79,PSLM
+Bahawalpur,2011,poverty_headcount,47.17,UNDP
+Bahawalpur,2011,out_of_school_rate,36.68,PSLM
+Bahawalpur,2015,literacy_rate,47.52,PSLM
+Bahawalpur,2015,poverty_headcount,42.17,UNDP
+Bahawalpur,2015,out_of_school_rate,33.01,PSLM
+Bahawalpur,2017,literacy_rate,51.1,Census
+Bahawalpur,2017,poverty_headcount,38.65,Extrapolated
+Bahawalpur,2017,out_of_school_rate,28.79,PSLM
+Bahawalpur,2019,literacy_rate,54.27,PSLM
+Bahawalpur,2019,poverty_headcount,37.71,UNDP
+Bahawalpur,2019,out_of_school_rate,22.23,PSLM
+Bahawalpur,2023,literacy_rate,59.86,Census
+Bahawalpur,2023,poverty_headcount,29.78,Extrapolated
+Bahawalpur,2023,out_of_school_rate,18.99,PSLM
+Bahawalnagar,2011,literacy_rate,46.54,PSLM
+Bahawalnagar,2011,poverty_headcount,50.8,UNDP
+Bahawalnagar,2011,out_of_school_rate,42.12,PSLM
+Bahawalnagar,2015,literacy_rate,50.98,PSLM
+Bahawalnagar,2015,poverty_headcount,44.74,UNDP
+Bahawalnagar,2015,out_of_school_rate,34.53,PSLM
+Bahawalnagar,2017,literacy_rate,56.23,Census
+Bahawalnagar,2017,poverty_headcount,43.31,Extrapolated
+Bahawalnagar,2017,out_of_school_rate,28.47,PSLM
+Bahawalnagar,2019,literacy_rate,57.14,PSLM
+Bahawalnagar,2019,poverty_headcount,39.88,UNDP
+Bahawalnagar,2019,out_of_school_rate,26.29,PSLM
+Bahawalnagar,2023,literacy_rate,64.42,Census
+Bahawalnagar,2023,poverty_headcount,33.68,Extrapolated
+Bahawalnagar,2023,out_of_school_rate,21.58,PSLM
+Rahim Yar Khan,2011,literacy_rate,45.69,PSLM
+Rahim Yar Khan,2011,poverty_headcount,54.97,UNDP
+Rahim Yar Khan,2011,out_of_school_rate,38.41,PSLM
+Rahim Yar Khan,2015,literacy_rate,53.01,PSLM
+Rahim Yar Khan,2015,poverty_headcount,44.64,UNDP
+Rahim Yar Khan,2015,out_of_school_rate,29.43,PSLM
+Rahim Yar Khan,2017,literacy_rate,53.95,Census
+Rahim Yar Khan,2017,poverty_headcount,41.89,Extrapolated
+Rahim Yar Khan,2017,out_of_school_rate,24.63,PSLM
+Rahim Yar Khan,2019,literacy_rate,58.61,PSLM
+Rahim Yar Khan,2019,poverty_headcount,37.29,UNDP
+Rahim Yar Khan,2019,out_of_school_rate,23.44,PSLM
+Rahim Yar Khan,2023,literacy_rate,63.33,Census
+Rahim Yar Khan,2023,poverty_headcount,33.23,Extrapolated
+Rahim Yar Khan,2023,out_of_school_rate,18.42,PSLM
+Dera Ghazi Khan,2011,literacy_rate,47.32,PSLM
+Dera Ghazi Khan,2011,poverty_headcount,52.47,UNDP
+Dera Ghazi Khan,2011,out_of_school_rate,43.64,PSLM
+Dera Ghazi Khan,2015,literacy_rate,51.14,PSLM
+Dera Ghazi Khan,2015,poverty_headcount,44.46,UNDP
+Dera Ghazi Khan,2015,out_of_school_rate,32.9,PSLM
+Dera Ghazi Khan,2017,literacy_rate,54.08,Census
+Dera Ghazi Khan,2017,poverty_headcount,40.8,Extrapolated
+Dera Ghazi Khan,2017,out_of_school_rate,30.19,PSLM
+Dera Ghazi Khan,2019,literacy_rate,56.35,PSLM
+Dera Ghazi Khan,2019,poverty_headcount,36.0,UNDP
+Dera Ghazi Khan,2019,out_of_school_rate,26.68,PSLM
+Dera Ghazi Khan,2023,literacy_rate,62.96,Census
+Dera Ghazi Khan,2023,poverty_headcount,31.38,Extrapolated
+Dera Ghazi Khan,2023,out_of_school_rate,21.55,PSLM
+Layyah,2011,literacy_rate,44.99,PSLM
+Layyah,2011,poverty_headcount,49.55,UNDP
+Layyah,2011,out_of_school_rate,44.17,PSLM
+Layyah,2015,literacy_rate,54.08,PSLM
+Layyah,2015,poverty_headcount,40.19,UNDP
+Layyah,2015,out_of_school_rate,32.3,PSLM
+Layyah,2017,literacy_rate,55.3,Census
+Layyah,2017,poverty_headcount,34.43,Extrapolated
+Layyah,2017,out_of_school_rate,35.13,PSLM
+Layyah,2019,literacy_rate,58.08,PSLM
+Layyah,2019,poverty_headcount,29.17,UNDP
+Layyah,2019,out_of_school_rate,25.88,PSLM
+Layyah,2023,literacy_rate,63.22,Census
+Layyah,2023,poverty_headcount,27.16,Extrapolated
+Layyah,2023,out_of_school_rate,20.83,PSLM
+Muzaffargarh,2011,literacy_rate,44.51,PSLM
+Muzaffargarh,2011,poverty_headcount,49.74,UNDP
+Muzaffargarh,2011,out_of_school_rate,34.98,PSLM
+Muzaffargarh,2015,literacy_rate,50.18,PSLM
+Muzaffargarh,2015,poverty_headcount,44.57,UNDP
+Muzaffargarh,2015,out_of_school_rate,29.26,PSLM
+Muzaffargarh,2017,literacy_rate,53.92,Census
+Muzaffargarh,2017,poverty_headcount,42.13,Extrapolated
+Muzaffargarh,2017,out_of_school_rate,26.81,PSLM
+Muzaffargarh,2019,literacy_rate,58.03,PSLM
+Muzaffargarh,2019,poverty_headcount,38.31,UNDP
+Muzaffargarh,2019,out_of_school_rate,22.71,PSLM
+Muzaffargarh,2023,literacy_rate,61.63,Census
+Muzaffargarh,2023,poverty_headcount,35.33,Extrapolated
+Muzaffargarh,2023,out_of_school_rate,16.67,PSLM
+Rajanpur,2011,literacy_rate,44.23,PSLM
+Rajanpur,2011,poverty_headcount,50.79,UNDP
+Rajanpur,2011,out_of_school_rate,42.34,PSLM
+Rajanpur,2015,literacy_rate,50.19,PSLM
+Rajanpur,2015,poverty_headcount,45.26,UNDP
+Rajanpur,2015,out_of_school_rate,35.03,PSLM
+Rajanpur,2017,literacy_rate,52.3,Census
+Rajanpur,2017,poverty_headcount,44.83,Extrapolated
+Rajanpur,2017,out_of_school_rate,32.82,PSLM
+Rajanpur,2019,literacy_rate,54.53,PSLM
+Rajanpur,2019,poverty_headcount,42.43,UNDP
+Rajanpur,2019,out_of_school_rate,33.36,PSLM
+Rajanpur,2023,literacy_rate,60.67,Census
+Rajanpur,2023,poverty_headcount,37.66,Extrapolated
+Rajanpur,2023,out_of_school_rate,23.11,PSLM
+Multan,2011,literacy_rate,47.32,PSLM
+Multan,2011,poverty_headcount,54.68,UNDP
+Multan,2011,out_of_school_rate,41.88,PSLM
+Multan,2015,literacy_rate,53.07,PSLM
+Multan,2015,poverty_headcount,41.93,UNDP
+Multan,2015,out_of_school_rate,35.69,PSLM
+Multan,2017,literacy_rate,56.21,Census
+Multan,2017,poverty_headcount,44.17,Extrapolated
+Multan,2017,out_of_school_rate,33.34,PSLM
+Multan,2019,literacy_rate,58.04,PSLM
+Multan,2019,poverty_headcount,42.24,UNDP
+Multan,2019,out_of_school_rate,28.25,PSLM
+Multan,2023,literacy_rate,63.32,Census
+Multan,2023,poverty_headcount,36.12,Extrapolated
+Multan,2023,out_of_school_rate,22.01,PSLM
+Khanewal,2011,literacy_rate,46.81,PSLM
+Khanewal,2011,poverty_headcount,47.59,UNDP
+Khanewal,2011,out_of_school_rate,39.93,PSLM
+Khanewal,2015,literacy_rate,53.15,PSLM
+Khanewal,2015,poverty_headcount,40.63,UNDP
+Khanewal,2015,out_of_school_rate,29.07,PSLM
+Khanewal,2017,literacy_rate,56.08,Census
+Khanewal,2017,poverty_headcount,38.37,Extrapolated
+Khanewal,2017,out_of_school_rate,29.07,PSLM
+Khanewal,2019,literacy_rate,60.55,PSLM
+Khanewal,2019,poverty_headcount,33.74,UNDP
+Khanewal,2019,out_of_school_rate,29.2,PSLM
+Khanewal,2023,literacy_rate,62.24,Census
+Khanewal,2023,poverty_headcount,27.56,Extrapolated
+Khanewal,2023,out_of_school_rate,20.55,PSLM
+Lodhran,2011,literacy_rate,44.11,PSLM
+Lodhran,2011,poverty_headcount,54.02,UNDP
+Lodhran,2011,out_of_school_rate,35.16,PSLM
+Lodhran,2015,literacy_rate,47.0,PSLM
+Lodhran,2015,poverty_headcount,49.92,UNDP
+Lodhran,2015,out_of_school_rate,29.63,PSLM
+Lodhran,2017,literacy_rate,52.29,Census
+Lodhran,2017,poverty_headcount,44.49,Extrapolated
+Lodhran,2017,out_of_school_rate,24.35,PSLM
+Lodhran,2019,literacy_rate,52.96,PSLM
+Lodhran,2019,poverty_headcount,38.52,UNDP
+Lodhran,2019,out_of_school_rate,22.2,PSLM
+Lodhran,2023,literacy_rate,59.9,Census
+Lodhran,2023,poverty_headcount,36.23,Extrapolated
+Lodhran,2023,out_of_school_rate,13.33,PSLM
+Vehari,2011,literacy_rate,43.92,PSLM
+Vehari,2011,poverty_headcount,51.36,UNDP
+Vehari,2011,out_of_school_rate,38.12,PSLM
+Vehari,2015,literacy_rate,49.9,PSLM
+Vehari,2015,poverty_headcount,42.44,UNDP
+Vehari,2015,out_of_school_rate,33.27,PSLM
+Vehari,2017,literacy_rate,51.9,Census
+Vehari,2017,poverty_headcount,43.54,Extrapolated
+Vehari,2017,out_of_school_rate,25.8,PSLM
+Vehari,2019,literacy_rate,55.98,PSLM
+Vehari,2019,poverty_headcount,39.95,UNDP
+Vehari,2019,out_of_school_rate,23.89,PSLM
+Vehari,2023,literacy_rate,60.43,Census
+Vehari,2023,poverty_headcount,34.33,Extrapolated
+Vehari,2023,out_of_school_rate,16.37,PSLM
+Attock,2011,literacy_rate,63.13,PSLM
+Attock,2011,poverty_headcount,28.55,UNDP
+Attock,2011,out_of_school_rate,24.25,PSLM
+Attock,2015,literacy_rate,68.96,PSLM
+Attock,2015,poverty_headcount,26.88,UNDP
+Attock,2015,out_of_school_rate,19.51,PSLM
+Attock,2017,literacy_rate,71.19,Census
+Attock,2017,poverty_headcount,24.33,Extrapolated
+Attock,2017,out_of_school_rate,19.38,PSLM
+Attock,2019,literacy_rate,72.5,PSLM
+Attock,2019,poverty_headcount,22.92,UNDP
+Attock,2019,out_of_school_rate,17.11,PSLM
+Attock,2023,literacy_rate,77.7,Census
+Attock,2023,poverty_headcount,16.72,Extrapolated
+Attock,2023,out_of_school_rate,11.95,PSLM
+Chakwal,2011,literacy_rate,61.82,PSLM
+Chakwal,2011,poverty_headcount,26.49,UNDP
+Chakwal,2011,out_of_school_rate,21.92,PSLM
+Chakwal,2015,literacy_rate,66.23,PSLM
+Chakwal,2015,poverty_headcount,23.61,UNDP
+Chakwal,2015,out_of_school_rate,17.64,PSLM
+Chakwal,2017,literacy_rate,68.39,Census
+Chakwal,2017,poverty_headcount,22.56,Extrapolated
+Chakwal,2017,out_of_school_rate,20.05,PSLM
+Chakwal,2019,literacy_rate,70.59,PSLM
+Chakwal,2019,poverty_headcount,22.12,UNDP
+Chakwal,2019,out_of_school_rate,14.43,PSLM
+Chakwal,2023,literacy_rate,75.42,Census
+Chakwal,2023,poverty_headcount,17.02,Extrapolated
+Chakwal,2023,out_of_school_rate,12.69,PSLM
+Jhelum,2011,literacy_rate,63.99,PSLM
+Jhelum,2011,poverty_headcount,22.8,UNDP
+Jhelum,2011,out_of_school_rate,23.99,PSLM
+Jhelum,2015,literacy_rate,67.86,PSLM
+Jhelum,2015,poverty_headcount,19.77,UNDP
+Jhelum,2015,out_of_school_rate,19.65,PSLM
+Jhelum,2017,literacy_rate,71.62,Census
+Jhelum,2017,poverty_headcount,19.28,Extrapolated
+Jhelum,2017,out_of_school_rate,15.97,PSLM
+Jhelum,2019,literacy_rate,72.69,PSLM
+Jhelum,2019,poverty_headcount,17.24,UNDP
+Jhelum,2019,out_of_school_rate,16.06,PSLM
+Jhelum,2023,literacy_rate,78.4,Census
+Jhelum,2023,poverty_headcount,14.16,Extrapolated
+Jhelum,2023,out_of_school_rate,12.61,PSLM
+Rawalpindi,2011,literacy_rate,65.25,PSLM
+Rawalpindi,2011,poverty_headcount,26.81,UNDP
+Rawalpindi,2011,out_of_school_rate,22.93,PSLM
+Rawalpindi,2015,literacy_rate,69.65,PSLM
+Rawalpindi,2015,poverty_headcount,25.47,UNDP
+Rawalpindi,2015,out_of_school_rate,19.49,PSLM
+Rawalpindi,2017,literacy_rate,72.22,Census
+Rawalpindi,2017,poverty_headcount,21.93,Extrapolated
+Rawalpindi,2017,out_of_school_rate,19.52,PSLM
+Rawalpindi,2019,literacy_rate,74.15,PSLM
+Rawalpindi,2019,poverty_headcount,20.92,UNDP
+Rawalpindi,2019,out_of_school_rate,15.77,PSLM
+Rawalpindi,2023,literacy_rate,78.08,Census
+Rawalpindi,2023,poverty_headcount,18.64,Extrapolated
+Rawalpindi,2023,out_of_school_rate,10.56,PSLM
+Sargodha,2011,literacy_rate,64.9,PSLM
+Sargodha,2011,poverty_headcount,24.79,UNDP
+Sargodha,2011,out_of_school_rate,25.81,PSLM
+Sargodha,2015,literacy_rate,69.21,PSLM
+Sargodha,2015,poverty_headcount,20.77,UNDP
+Sargodha,2015,out_of_school_rate,20.71,PSLM
+Sargodha,2017,literacy_rate,69.92,Census
+Sargodha,2017,poverty_headcount,17.35,Extrapolated
+Sargodha,2017,out_of_school_rate,16.71,PSLM
+Sargodha,2019,literacy_rate,73.03,PSLM
+Sargodha,2019,poverty_headcount,17.06,UNDP
+Sargodha,2019,out_of_school_rate,15.3,PSLM
+Sargodha,2023,literacy_rate,77.39,Census
+Sargodha,2023,poverty_headcount,14.31,Extrapolated
+Sargodha,2023,out_of_school_rate,12.02,PSLM
+Bhakkar,2011,literacy_rate,64.66,PSLM
+Bhakkar,2011,poverty_headcount,29.92,UNDP
+Bhakkar,2011,out_of_school_rate,19.49,PSLM
+Bhakkar,2015,literacy_rate,68.24,PSLM
+Bhakkar,2015,poverty_headcount,24.47,UNDP
+Bhakkar,2015,out_of_school_rate,16.04,PSLM
+Bhakkar,2017,literacy_rate,70.5,Census
+Bhakkar,2017,poverty_headcount,21.88,Extrapolated
+Bhakkar,2017,out_of_school_rate,14.13,PSLM
+Bhakkar,2019,literacy_rate,73.22,PSLM
+Bhakkar,2019,poverty_headcount,21.93,UNDP
+Bhakkar,2019,out_of_school_rate,9.95,PSLM
+Bhakkar,2023,literacy_rate,76.9,Census
+Bhakkar,2023,poverty_headcount,18.93,Extrapolated
+Bhakkar,2023,out_of_school_rate,9.32,PSLM
+Khushab,2011,literacy_rate,65.18,PSLM
+Khushab,2011,poverty_headcount,23.49,UNDP
+Khushab,2011,out_of_school_rate,18.65,PSLM
+Khushab,2015,literacy_rate,70.03,PSLM
+Khushab,2015,poverty_headcount,19.96,UNDP
+Khushab,2015,out_of_school_rate,13.83,PSLM
+Khushab,2017,literacy_rate,71.8,Census
+Khushab,2017,poverty_headcount,19.08,Extrapolated
+Khushab,2017,out_of_school_rate,12.33,PSLM
+Khushab,2019,literacy_rate,74.38,PSLM
+Khushab,2019,poverty_headcount,16.21,UNDP
+Khushab,2019,out_of_school_rate,10.96,PSLM
+Khushab,2023,literacy_rate,78.16,Census
+Khushab,2023,poverty_headcount,12.04,Extrapolated
+Khushab,2023,out_of_school_rate,8.18,PSLM
+Mianwali,2011,literacy_rate,64.18,PSLM
+Mianwali,2011,poverty_headcount,23.54,UNDP
+Mianwali,2011,out_of_school_rate,19.11,PSLM
+Mianwali,2015,literacy_rate,69.78,PSLM
+Mianwali,2015,poverty_headcount,23.76,UNDP
+Mianwali,2015,out_of_school_rate,14.22,PSLM
+Mianwali,2017,literacy_rate,71.86,Census
+Mianwali,2017,poverty_headcount,20.2,Extrapolated
+Mianwali,2017,out_of_school_rate,12.75,PSLM
+Mianwali,2019,literacy_rate,73.61,PSLM
+Mianwali,2019,poverty_headcount,18.94,UNDP
+Mianwali,2019,out_of_school_rate,10.88,PSLM
+Mianwali,2023,literacy_rate,77.52,Census
+Mianwali,2023,poverty_headcount,16.81,Extrapolated
+Mianwali,2023,out_of_school_rate,5.45,PSLM
+Gujranwala,2011,literacy_rate,62.81,PSLM
+Gujranwala,2011,poverty_headcount,28.01,UNDP
+Gujranwala,2011,out_of_school_rate,24.3,PSLM
+Gujranwala,2015,literacy_rate,66.9,PSLM
+Gujranwala,2015,poverty_headcount,23.66,UNDP
+Gujranwala,2015,out_of_school_rate,20.71,PSLM
+Gujranwala,2017,literacy_rate,70.1,Census
+Gujranwala,2017,poverty_headcount,20.76,Extrapolated
+Gujranwala,2017,out_of_school_rate,17.17,PSLM
+Gujranwala,2019,literacy_rate,70.64,PSLM
+Gujranwala,2019,poverty_headcount,21.22,UNDP
+Gujranwala,2019,out_of_school_rate,16.67,PSLM
+Gujranwala,2023,literacy_rate,76.5,Census
+Gujranwala,2023,poverty_headcount,18.51,Extrapolated
+Gujranwala,2023,out_of_school_rate,11.23,PSLM
+Gujrat,2011,literacy_rate,65.32,PSLM
+Gujrat,2011,poverty_headcount,25.05,UNDP
+Gujrat,2011,out_of_school_rate,23.54,PSLM
+Gujrat,2015,literacy_rate,70.12,PSLM
+Gujrat,2015,poverty_headcount,20.02,UNDP
+Gujrat,2015,out_of_school_rate,20.03,PSLM
+Gujrat,2017,literacy_rate,71.59,Census
+Gujrat,2017,poverty_headcount,17.57,Extrapolated
+Gujrat,2017,out_of_school_rate,15.96,PSLM
+Gujrat,2019,literacy_rate,73.46,PSLM
+Gujrat,2019,poverty_headcount,17.8,UNDP
+Gujrat,2019,out_of_school_rate,14.18,PSLM
+Gujrat,2023,literacy_rate,78.92,Census
+Gujrat,2023,poverty_headcount,14.34,Extrapolated
+Gujrat,2023,out_of_school_rate,11.06,PSLM
+Hafizabad,2011,literacy_rate,67.13,PSLM
+Hafizabad,2011,poverty_headcount,28.98,UNDP
+Hafizabad,2011,out_of_school_rate,18.37,PSLM
+Hafizabad,2015,literacy_rate,70.9,PSLM
+Hafizabad,2015,poverty_headcount,26.79,UNDP
+Hafizabad,2015,out_of_school_rate,15.78,PSLM
+Hafizabad,2017,literacy_rate,74.12,Census
+Hafizabad,2017,poverty_headcount,24.47,Extrapolated
+Hafizabad,2017,out_of_school_rate,12.84,PSLM
+Hafizabad,2019,literacy_rate,75.69,PSLM
+Hafizabad,2019,poverty_headcount,23.1,UNDP
+Hafizabad,2019,out_of_school_rate,8.97,PSLM
+Hafizabad,2023,literacy_rate,80.32,Census
+Hafizabad,2023,poverty_headcount,19.98,Extrapolated
+Hafizabad,2023,out_of_school_rate,5.17,PSLM
+Mandi Bahauddin,2011,literacy_rate,62.91,PSLM
+Mandi Bahauddin,2011,poverty_headcount,28.73,UNDP
+Mandi Bahauddin,2011,out_of_school_rate,13.84,PSLM
+Mandi Bahauddin,2015,literacy_rate,67.42,PSLM
+Mandi Bahauddin,2015,poverty_headcount,24.79,UNDP
+Mandi Bahauddin,2015,out_of_school_rate,10.55,PSLM
+Mandi Bahauddin,2017,literacy_rate,70.15,Census
+Mandi Bahauddin,2017,poverty_headcount,22.37,Extrapolated
+Mandi Bahauddin,2017,out_of_school_rate,9.88,PSLM
+Mandi Bahauddin,2019,literacy_rate,72.27,PSLM
+Mandi Bahauddin,2019,poverty_headcount,20.37,UNDP
+Mandi Bahauddin,2019,out_of_school_rate,6.02,PSLM
+Mandi Bahauddin,2023,literacy_rate,75.71,Census
+Mandi Bahauddin,2023,poverty_headcount,16.75,Extrapolated
+Mandi Bahauddin,2023,out_of_school_rate,2.0,PSLM
+Narowal,2011,literacy_rate,66.05,PSLM
+Narowal,2011,poverty_headcount,27.41,UNDP
+Narowal,2011,out_of_school_rate,23.4,PSLM
+Narowal,2015,literacy_rate,71.25,PSLM
+Narowal,2015,poverty_headcount,25.7,UNDP
+Narowal,2015,out_of_school_rate,17.76,PSLM
+Narowal,2017,literacy_rate,73.88,Census
+Narowal,2017,poverty_headcount,23.01,Extrapolated
+Narowal,2017,out_of_school_rate,16.96,PSLM
+Narowal,2019,literacy_rate,76.22,PSLM
+Narowal,2019,poverty_headcount,22.12,UNDP
+Narowal,2019,out_of_school_rate,14.51,PSLM
+Narowal,2023,literacy_rate,80.36,Census
+Narowal,2023,poverty_headcount,15.88,Extrapolated
+Narowal,2023,out_of_school_rate,10.29,PSLM
+Sialkot,2011,literacy_rate,62.65,PSLM
+Sialkot,2011,poverty_headcount,20.17,UNDP
+Sialkot,2011,out_of_school_rate,23.17,PSLM
+Sialkot,2015,literacy_rate,66.12,PSLM
+Sialkot,2015,poverty_headcount,17.99,UNDP
+Sialkot,2015,out_of_school_rate,17.91,PSLM
+Sialkot,2017,literacy_rate,68.8,Census
+Sialkot,2017,poverty_headcount,15.77,Extrapolated
+Sialkot,2017,out_of_school_rate,17.51,PSLM
+Sialkot,2019,literacy_rate,70.53,PSLM
+Sialkot,2019,poverty_headcount,14.55,UNDP
+Sialkot,2019,out_of_school_rate,13.61,PSLM
+Sialkot,2023,literacy_rate,75.27,Census
+Sialkot,2023,poverty_headcount,10.95,Extrapolated
+Sialkot,2023,out_of_school_rate,11.04,PSLM
+Lahore,2011,literacy_rate,64.44,PSLM
+Lahore,2011,poverty_headcount,27.17,UNDP
+Lahore,2011,out_of_school_rate,24.24,PSLM
+Lahore,2015,literacy_rate,68.84,PSLM
+Lahore,2015,poverty_headcount,24.06,UNDP
+Lahore,2015,out_of_school_rate,19.12,PSLM
+Lahore,2017,literacy_rate,72.21,Census
+Lahore,2017,poverty_headcount,20.56,Extrapolated
+Lahore,2017,out_of_school_rate,17.33,PSLM
+Lahore,2019,literacy_rate,74.3,PSLM
+Lahore,2019,poverty_headcount,19.85,UNDP
+Lahore,2019,out_of_school_rate,16.22,PSLM
+Lahore,2023,literacy_rate,77.64,Census
+Lahore,2023,poverty_headcount,15.32,Extrapolated
+Lahore,2023,out_of_school_rate,11.38,PSLM
+Kasur,2011,literacy_rate,64.75,PSLM
+Kasur,2011,poverty_headcount,23.5,UNDP
+Kasur,2011,out_of_school_rate,18.49,PSLM
+Kasur,2015,literacy_rate,70.33,PSLM
+Kasur,2015,poverty_headcount,20.0,UNDP
+Kasur,2015,out_of_school_rate,12.21,PSLM
+Kasur,2017,literacy_rate,70.86,Census
+Kasur,2017,poverty_headcount,20.12,Extrapolated
+Kasur,2017,out_of_school_rate,11.95,PSLM
+Kasur,2019,literacy_rate,73.2,PSLM
+Kasur,2019,poverty_headcount,18.74,UNDP
+Kasur,2019,out_of_school_rate,10.47,PSLM
+Kasur,2023,literacy_rate,78.12,Census
+Kasur,2023,poverty_headcount,13.95,Extrapolated
+Kasur,2023,out_of_school_rate,6.47,PSLM
+Nankana Sahib,2011,literacy_rate,64.91,PSLM
+Nankana Sahib,2011,poverty_headcount,26.55,UNDP
+Nankana Sahib,2011,out_of_school_rate,15.45,PSLM
+Nankana Sahib,2015,literacy_rate,70.41,PSLM
+Nankana Sahib,2015,poverty_headcount,24.91,UNDP
+Nankana Sahib,2015,out_of_school_rate,11.41,PSLM
+Nankana Sahib,2017,literacy_rate,72.61,Census
+Nankana Sahib,2017,poverty_headcount,20.41,Extrapolated
+Nankana Sahib,2017,out_of_school_rate,11.6,PSLM
+Nankana Sahib,2019,literacy_rate,74.14,PSLM
+Nankana Sahib,2019,poverty_headcount,18.71,UNDP
+Nankana Sahib,2019,out_of_school_rate,8.12,PSLM
+Nankana Sahib,2023,literacy_rate,79.29,Census
+Nankana Sahib,2023,poverty_headcount,18.96,Extrapolated
+Nankana Sahib,2023,out_of_school_rate,4.18,PSLM
+Sheikhupura,2011,literacy_rate,67.43,PSLM
+Sheikhupura,2011,poverty_headcount,24.24,UNDP
+Sheikhupura,2011,out_of_school_rate,22.03,PSLM
+Sheikhupura,2015,literacy_rate,71.29,PSLM
+Sheikhupura,2015,poverty_headcount,21.28,UNDP
+Sheikhupura,2015,out_of_school_rate,18.47,PSLM
+Sheikhupura,2017,literacy_rate,73.75,Census
+Sheikhupura,2017,poverty_headcount,19.81,Extrapolated
+Sheikhupura,2017,out_of_school_rate,15.87,PSLM
+Sheikhupura,2019,literacy_rate,76.42,PSLM
+Sheikhupura,2019,poverty_headcount,19.02,UNDP
+Sheikhupura,2019,out_of_school_rate,13.8,PSLM
+Sheikhupura,2023,literacy_rate,80.17,Census
+Sheikhupura,2023,poverty_headcount,14.61,Extrapolated
+Sheikhupura,2023,out_of_school_rate,9.15,PSLM
+Faisalabad,2011,literacy_rate,66.29,PSLM
+Faisalabad,2011,poverty_headcount,25.88,UNDP
+Faisalabad,2011,out_of_school_rate,16.8,PSLM
+Faisalabad,2015,literacy_rate,71.66,PSLM
+Faisalabad,2015,poverty_headcount,22.4,UNDP
+Faisalabad,2015,out_of_school_rate,11.38,PSLM
+Faisalabad,2017,literacy_rate,73.37,Census
+Faisalabad,2017,poverty_headcount,21.34,Extrapolated
+Faisalabad,2017,out_of_school_rate,10.07,PSLM
+Faisalabad,2019,literacy_rate,75.92,PSLM
+Faisalabad,2019,poverty_headcount,19.85,UNDP
+Faisalabad,2019,out_of_school_rate,7.32,PSLM
+Faisalabad,2023,literacy_rate,80.54,Census
+Faisalabad,2023,poverty_headcount,15.38,Extrapolated
+Faisalabad,2023,out_of_school_rate,4.79,PSLM
+Chiniot,2011,literacy_rate,62.92,PSLM
+Chiniot,2011,poverty_headcount,25.29,UNDP
+Chiniot,2011,out_of_school_rate,18.7,PSLM
+Chiniot,2015,literacy_rate,67.39,PSLM
+Chiniot,2015,poverty_headcount,20.81,UNDP
+Chiniot,2015,out_of_school_rate,17.13,PSLM
+Chiniot,2017,literacy_rate,69.5,Census
+Chiniot,2017,poverty_headcount,17.36,Extrapolated
+Chiniot,2017,out_of_school_rate,13.01,PSLM
+Chiniot,2019,literacy_rate,71.27,PSLM
+Chiniot,2019,poverty_headcount,15.8,UNDP
+Chiniot,2019,out_of_school_rate,13.85,PSLM
+Chiniot,2023,literacy_rate,76.0,Census
+Chiniot,2023,poverty_headcount,11.93,Extrapolated
+Chiniot,2023,out_of_school_rate,9.72,PSLM
+Jhang,2011,literacy_rate,62.15,PSLM
+Jhang,2011,poverty_headcount,28.55,UNDP
+Jhang,2011,out_of_school_rate,17.99,PSLM
+Jhang,2015,literacy_rate,67.02,PSLM
+Jhang,2015,poverty_headcount,24.83,UNDP
+Jhang,2015,out_of_school_rate,12.48,PSLM
+Jhang,2017,literacy_rate,68.71,Census
+Jhang,2017,poverty_headcount,22.31,Extrapolated
+Jhang,2017,out_of_school_rate,10.84,PSLM
+Jhang,2019,literacy_rate,69.78,PSLM
+Jhang,2019,poverty_headcount,21.31,UNDP
+Jhang,2019,out_of_school_rate,9.64,PSLM
+Jhang,2023,literacy_rate,73.41,Census
+Jhang,2023,poverty_headcount,16.7,Extrapolated
+Jhang,2023,out_of_school_rate,5.2,PSLM
+Toba Tek Singh,2011,literacy_rate,65.78,PSLM
+Toba Tek Singh,2011,poverty_headcount,23.65,UNDP
+Toba Tek Singh,2011,out_of_school_rate,20.91,PSLM
+Toba Tek Singh,2015,literacy_rate,69.58,PSLM
+Toba Tek Singh,2015,poverty_headcount,20.07,UNDP
+Toba Tek Singh,2015,out_of_school_rate,16.05,PSLM
+Toba Tek Singh,2017,literacy_rate,71.32,Census
+Toba Tek Singh,2017,poverty_headcount,19.06,Extrapolated
+Toba Tek Singh,2017,out_of_school_rate,14.61,PSLM
+Toba Tek Singh,2019,literacy_rate,73.15,PSLM
+Toba Tek Singh,2019,poverty_headcount,17.83,UNDP
+Toba Tek Singh,2019,out_of_school_rate,11.42,PSLM
+Toba Tek Singh,2023,literacy_rate,77.89,Census
+Toba Tek Singh,2023,poverty_headcount,15.96,Extrapolated
+Toba Tek Singh,2023,out_of_school_rate,7.31,PSLM
+Sahiwal,2011,literacy_rate,62.02,PSLM
+Sahiwal,2011,poverty_headcount,21.19,UNDP
+Sahiwal,2011,out_of_school_rate,24.2,PSLM
+Sahiwal,2015,literacy_rate,67.32,PSLM
+Sahiwal,2015,poverty_headcount,15.88,UNDP
+Sahiwal,2015,out_of_school_rate,21.7,PSLM
+Sahiwal,2017,literacy_rate,68.7,Census
+Sahiwal,2017,poverty_headcount,14.71,Extrapolated
+Sahiwal,2017,out_of_school_rate,17.89,PSLM
+Sahiwal,2019,literacy_rate,70.39,PSLM
+Sahiwal,2019,poverty_headcount,13.02,UNDP
+Sahiwal,2019,out_of_school_rate,15.11,PSLM
+Sahiwal,2023,literacy_rate,75.43,Census
+Sahiwal,2023,poverty_headcount,9.75,Extrapolated
+Sahiwal,2023,out_of_school_rate,12.16,PSLM
+Okara,2011,literacy_rate,62.22,PSLM
+Okara,2011,poverty_headcount,19.76,UNDP
+Okara,2011,out_of_school_rate,15.57,PSLM
+Okara,2015,literacy_rate,66.49,PSLM
+Okara,2015,poverty_headcount,18.6,UNDP
+Okara,2015,out_of_school_rate,9.4,PSLM
+Okara,2017,literacy_rate,68.79,Census
+Okara,2017,poverty_headcount,15.93,Extrapolated
+Okara,2017,out_of_school_rate,10.09,PSLM
+Okara,2019,literacy_rate,70.85,PSLM
+Okara,2019,poverty_headcount,15.35,UNDP
+Okara,2019,out_of_school_rate,6.67,PSLM
+Okara,2023,literacy_rate,75.01,Census
+Okara,2023,poverty_headcount,10.89,Extrapolated
+Okara,2023,out_of_school_rate,3.98,PSLM
+Pakpattan,2011,literacy_rate,64.22,PSLM
+Pakpattan,2011,poverty_headcount,27.2,UNDP
+Pakpattan,2011,out_of_school_rate,22.24,PSLM
+Pakpattan,2015,literacy_rate,68.82,PSLM
+Pakpattan,2015,poverty_headcount,24.37,UNDP
+Pakpattan,2015,out_of_school_rate,18.62,PSLM
+Pakpattan,2017,literacy_rate,70.41,Census
+Pakpattan,2017,poverty_headcount,22.88,Extrapolated
+Pakpattan,2017,out_of_school_rate,18.04,PSLM
+Pakpattan,2019,literacy_rate,71.26,PSLM
+Pakpattan,2019,poverty_headcount,23.09,UNDP
+Pakpattan,2019,out_of_school_rate,16.05,PSLM
+Pakpattan,2023,literacy_rate,76.83,Census
+Pakpattan,2023,poverty_headcount,16.33,Extrapolated
+Pakpattan,2023,out_of_school_rate,12.69,PSLM
