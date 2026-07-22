@@ -27,12 +27,12 @@ def plot_indicator_trends(df_history, indicator="literacy_rate", selected_distri
     # Plot South Punjab Average
     sns.lineplot(data=regional_avg[regional_avg["region"]=="South Punjab"], 
                  x="year", y="value", marker='o', label="South Punjab Avg", 
-                 linewidth=3, color="#EF4444", ax=ax)
+                 linewidth=3, color="#BC4B26", ax=ax)
     
     # Plot Rest of Punjab Average
     sns.lineplot(data=regional_avg[regional_avg["region"]=="Rest of Punjab"], 
                  x="year", y="value", marker='o', label="Rest of Punjab Avg", 
-                 linewidth=3, color="#6366F1", ax=ax)
+                 linewidth=3, color="#175F6B", ax=ax)
     
     # Plot Selected Districts
     if selected_districts:
@@ -66,7 +66,7 @@ def plot_budget_comparison(df_budget, metric="allocation_pkr_bn"):
     
     df_plot["Type"] = df_plot["Type"].map(lambda x: "Promised (Allocation)" if "allocation" in x else "Spent (Expenditure)")
     
-    sns.barplot(data=df_plot, x="year", y="Value", hue="Type", palette=["#94A3B8", "#6366F1"], ax=ax)
+    sns.barplot(data=df_plot, x="year", y="Value", hue="Type", palette=["#93897A", "#175F6B"], ax=ax)
     
     ax.set_title(f"Annual Budget: Promised vs Actually Spent", fontsize=14, fontweight='bold', pad=20)
     ax.set_xlabel("Fiscal Year", fontsize=10)
@@ -87,7 +87,7 @@ def plot_disparity_gap(df_budget, metric="allocation_pkr_bn"):
     fig, ax = plt.subplots(figsize=(10, 6))
     
     sns.lineplot(data=df_budget, x="year", y=metric, hue="region", 
-                 marker='s', linewidth=2.5, palette={"South Punjab": "#EF4444", "Rest of Punjab": "#6366F1"}, ax=ax)
+                 marker='s', linewidth=2.5, palette={"South Punjab": "#BC4B26", "Rest of Punjab": "#175F6B"}, ax=ax)
     
     ax.set_title(f"Budget Allocation Disparity: South vs Rest", fontsize=14, fontweight='bold', pad=20)
     ax.set_xlabel("Fiscal Year", fontsize=10)

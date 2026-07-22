@@ -1,9 +1,7 @@
-"""
-South Punjab Development Dashboard
-Streamlit Application — Premium UI
+"""Punjab Districts — Development Longitudinal Analysis.
 
-An interactive dashboard analyzing socioeconomic disparities
-across South Punjab districts using real government data.
+Interactive dashboard for socioeconomic disparities across
+Punjab's 36 districts, with MICS household-level microdata.
 """
 
 import streamlit as st
@@ -46,287 +44,25 @@ from src.plotly_charts import (
     plot_budget_waterfall, plot_waterfall_all_years
 )
 from src.ml_explainer import compute_shap_values, plot_shap_summary, plot_shap_waterfall
+from src import theme
+from src.theme import masthead
+from src import mics_page
 
 # Page Config
 
 st.set_page_config(
-    page_title="South Punjab Development Dashboard",
+    page_title="Punjab Districts · Development Longitudinal Analysis",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Premium CSS
+# Design system: CSS + chart templates (single source of truth in src/theme.py)
+theme.inject_theme()
+theme.register_plotly_template()
+theme.apply_matplotlib_theme()
 
-st.markdown("""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-
-   /* ─── Global ──────────────────────────────────────── */
-    /* Remove the [class*="st-"] selector to prevent breaking native icons */
-    html, body {
-        font-family: 'Inter', sans-serif;
-    }
-    
-    /* Safely apply Inter to typical text elements instead of everything */
-    p, span, div, label {
-        font-family: 'Inter', sans-serif;
-    }
-    
-    /* Explicitly protect Streamlit's material icons */
-    .material-symbols-rounded, .material-symbols-outlined {
-        font-family: 'Material Symbols Rounded', 'Material Symbols Outlined', sans-serif !important;
-    }
-    
-    .main .block-container {
-        padding: 1.5rem 2rem 2rem;
-        max-width: 1300px;
-    }
-    .main { background: #F8FAFC; }
-
-    /* ─── Hide default Streamlit branding ─────────────── */
-    #MainMenu { visibility: hidden; }
-    footer { visibility: hidden; }
-    header { background: transparent !important; }
-
-    /* ─── Sidebar ─────────────────────────────────────── */
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
-        border-right: 1px solid rgba(255,255,255,0.05);
-    }
-    section[data-testid="stSidebar"] * {
-        color: #CBD5E1 !important;
-    }
-    section[data-testid="stSidebar"] .stRadio label {
-        padding: 0.5rem 0.75rem;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-        margin-bottom: 2px;
-    }
-    section[data-testid="stSidebar"] .stRadio label:hover {
-        background: rgba(99, 102, 241, 0.15);
-        color: #E0E7FF !important;
-    }
-    section[data-testid="stSidebar"] .stRadio label[data-checked="true"],
-    section[data-testid="stSidebar"] .stRadio div[role="radiogroup"] label[aria-checked="true"] {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(139, 92, 246, 0.2) 100%);
-        color: #C7D2FE !important;
-        font-weight: 600;
-    }
-
-    /* ─── Headers ─────────────────────────────────────── */
-    h1 {
-        color: #0F172A !important;
-        font-weight: 800 !important;
-        letter-spacing: -0.03em;
-        font-size: 2rem !important;
-    }
-    h2 {
-        color: #1E293B !important;
-        font-weight: 700 !important;
-        letter-spacing: -0.02em;
-    }
-    h3 {
-        color: #334155 !important;
-        font-weight: 600 !important;
-    }
-
-    /* ─── Custom Metric Cards ─────────────────────────── */
-    .metric-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.25rem 1.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-        border: 1px solid #E2E8F0;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-    }
-    .metric-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
-        border-color: #C7D2FE;
-    }
-    .metric-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 4px;
-        border-radius: 16px 16px 0 0;
-    }
-    .metric-card.blue::before { background: linear-gradient(90deg, #6366F1, #818CF8); }
-    .metric-card.red::before { background: linear-gradient(90deg, #EF4444, #F87171); }
-    .metric-card.green::before { background: linear-gradient(90deg, #10B981, #34D399); }
-    .metric-card.amber::before { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
-    .metric-card.purple::before { background: linear-gradient(90deg, #8B5CF6, #A78BFA); }
-    .metric-card.teal::before { background: linear-gradient(90deg, #14B8A6, #2DD4BF); }
-
-    .metric-label {
-        font-size: 0.8rem;
-        font-weight: 500;
-        color: #64748B;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 0.4rem;
-    }
-    .metric-value {
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: #0F172A;
-        line-height: 1.1;
-        margin-bottom: 0.3rem;
-    }
-    .metric-delta {
-        font-size: 0.8rem;
-        font-weight: 600;
-        padding: 2px 8px;
-        border-radius: 20px;
-        display: inline-block;
-    }
-    .metric-delta.negative {
-        color: #DC2626;
-        background: #FEE2E2;
-    }
-    .metric-delta.positive {
-        color: #059669;
-        background: #D1FAE5;
-    }
-    .metric-delta.neutral {
-        color: #D97706;
-        background: #FEF3C7;
-    }
-
-    /* ─── Page Banner ─────────────────────────────────── */
-    .page-banner {
-        background: linear-gradient(135deg, #0F172A 0%, #1E3A5F 40%, #1E293B 100%);
-        border-radius: 20px;
-        padding: 2rem 2.5rem;
-        margin-bottom: 2rem;
-        color: white;
-        position: relative;
-        overflow: hidden;
-    }
-    .page-banner::after {
-        content: '';
-        position: absolute;
-        top: -50%; right: -20%;
-        width: 60%; height: 200%;
-        background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 60%);
-        border-radius: 50%;
-    }
-    .page-banner h1 {
-        color: white !important;
-        font-size: 1.8rem !important;
-        margin-bottom: 0.25rem;
-        position: relative;
-        z-index: 1;
-    }
-    .page-banner p {
-        color: #94A3B8;
-        font-size: 1rem;
-        max-width: 700px;
-        position: relative;
-        z-index: 1;
-    }
-    .page-banner .badge {
-        display: inline-block;
-        background: rgba(99, 102, 241, 0.2);
-        color: #C7D2FE;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.02em;
-        margin-right: 6px;
-        margin-bottom: 8px;
-    }
-
-    /* ─── Section Cards ───────────────────────────────── */
-    .section-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        margin-bottom: 1rem;
-    }
-    .section-card h3 {
-        margin-top: 0 !important;
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid #F1F5F9;
-        margin-bottom: 1rem;
-    }
-
-    /* ─── Tabs ────────────────────────────────────────── */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 4px;
-        background: #F1F5F9;
-        border-radius: 12px;
-        padding: 4px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 10px;
-        padding: 10px 20px;
-        font-weight: 600;
-        font-size: 0.9rem;
-        background: transparent;
-        border: none;
-        color: #64748B;
-    }
-    .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background: white !important;
-        color: #4F46E5 !important;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    }
-    .stTabs [data-baseweb="tab-highlight"] { display: none; }
-    .stTabs [data-baseweb="tab-border"] { display: none; }
-
-    /* ─── DataFrames ──────────────────────────────────── */
-    .stDataFrame { border-radius: 12px; overflow: hidden; }
-
-    /* ─── Selectbox, Slider ───────────────────────────── */
-    .stSelectbox > div > div,
-    .stSlider > div { border-radius: 10px; }
-
-    /* ─── Divider ─────────────────────────────────────── */
-    hr {
-        border: none;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, #E2E8F0, transparent);
-        margin: 1.5rem 0;
-    }
-
-    /* ─── Insight Box ─────────────────────────────────── */
-    .insight-box {
-        background: linear-gradient(135deg, #EEF2FF, #F8FAFC);
-        border-left: 4px solid #6366F1;
-        border-radius: 0 12px 12px 0;
-        padding: 1rem 1.25rem;
-        margin: 1rem 0;
-        font-size: 0.95rem;
-        color: #334155;
-    }
-    .insight-box strong { color: #4F46E5; }
-
-    /* ─── About page cards ────────────────────────────── */
-    .about-card {
-        background: white;
-        border-radius: 16px;
-        padding: 1.5rem;
-        border: 1px solid #E2E8F0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-    .about-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.06);
-    }
-    .about-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
-    .about-card h4 { color: #1E293B; margin: 0.5rem 0 0.25rem; }
-    .about-card p { color: #64748B; font-size: 0.85rem; }
-</style>
-""", unsafe_allow_html=True)
+# CSS now lives in src/theme.py (injected above)
 
 
 # Helper: Custom Metric Card
@@ -354,10 +90,10 @@ def load_and_clean():
         df = clean_data(df)
         return df
     except FileNotFoundError as e:
-        st.error(f"❌ Data file not found: {e}")
+        st.error(f"Data file not found: {e}")
         st.stop()
     except Exception as e:
-        st.error(f"❌ Error loading data: {e}")
+        st.error(f"Error loading data: {e}")
         st.stop()
 
 @st.cache_data
@@ -369,7 +105,7 @@ def train_models(_df):
         ridge = train_ridge(data["X_train"], data["y_train"], alpha=best_alpha)
         return lr, ridge, data, best_alpha, alpha_df
     except Exception as e:
-        st.error(f"❌ Error training models: {e}")
+        st.error(f"Error training models: {e}")
         st.stop()
 
 df = load_and_clean()
@@ -405,24 +141,21 @@ _rest_internet = rest_df["internet_access"].mean() if "internet_access" in rest_
 
 with st.sidebar:
     st.markdown("""
-    <div style="text-align:center; padding: 1rem 0 0.5rem;">
-        <div style="font-size: 2rem; margin-bottom: 0.25rem;">📊</div>
-        <div style="font-size: 1.1rem; font-weight: 700; color: #E2E8F0 !important; letter-spacing: -0.02em;">
-            South Punjab
+    <div style="padding: 1.2rem 0.75rem 0.9rem; border-bottom: 1px solid rgba(246,241,231,0.12); margin-bottom: 0.75rem;">
+        <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 1.25rem; font-weight: 700; color: #F6F1E7 !important; line-height: 1.2;">
+            Uneven Progress
         </div>
-        <div style="font-size: 0.75rem; font-weight: 400; color: #64748B !important; letter-spacing: 0.05em; text-transform: uppercase;">
-            Development Dashboard
+        <div style="font-size: 0.68rem; font-weight: 600; color: #BC4B26 !important; letter-spacing: 0.12em; text-transform: uppercase; margin-top: 4px;">
+            Punjab · Development Atlas
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
-
     page = st.radio(
         "Navigation",
-        ["🏠 Overview", "🏘️ District Profiles", "📈 EDA", 
-         "📅 Temporal Trends", "💰 Budget Accountability",
-         "🤖 ML Predictions", "ℹ️ About"],
+        ["Overview", "District Profiles", "Indicators",
+         "Trends 2011–2023", "Budget Accountability",
+         "Poverty Co-Movement", "MICS Longitudinal Study", "About & Sources"],
         label_visibility="collapsed"
     )
 
@@ -437,26 +170,26 @@ with st.sidebar:
     st.markdown("---")
 
     st.markdown(f"""
-    <div style="padding: 0 0.5rem;">
-        <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: #475569 !important; margin-bottom: 0.75rem; font-weight: 600;">
-            Dataset Summary
+    <div style="padding: 0 0.75rem;">
+        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.12em; color: #8A8172 !important; margin-bottom: 0.6rem; font-weight: 700;">
+            The Data
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
-            <div style="background: rgba(99,102,241,0.1); border-radius: 10px; padding: 0.6rem 0.75rem;">
-                <div style="font-size: 1.2rem; font-weight: 700; color: #C7D2FE !important;">{len(df)}</div>
-                <div style="font-size: 0.65rem; color: #64748B !important;">Districts</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: rgba(246,241,231,0.12); border: 1px solid rgba(246,241,231,0.12);">
+            <div style="background: #211B12; padding: 0.55rem 0.7rem;">
+                <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 1.25rem; font-weight: 700; color: #F6F1E7 !important;">{len(df)}</div>
+                <div style="font-size: 0.62rem; color: #8A8172 !important; text-transform: uppercase; letter-spacing: 0.06em;">Districts</div>
             </div>
-            <div style="background: rgba(239, 68, 68, 0.1); border-radius: 10px; padding: 0.6rem 0.75rem;">
-                <div style="font-size: 1.2rem; font-weight: 700; color: #FCA5A5 !important;">{len(sp_df)}</div>
-                <div style="font-size: 0.65rem; color: #64748B !important;">South Punjab</div>
+            <div style="background: #211B12; padding: 0.55rem 0.7rem;">
+                <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 1.25rem; font-weight: 700; color: #E0784F !important;">{len(sp_df)}</div>
+                <div style="font-size: 0.62rem; color: #8A8172 !important; text-transform: uppercase; letter-spacing: 0.06em;">South Punjab</div>
             </div>
-            <div style="background: rgba(16, 185, 129, 0.1); border-radius: 10px; padding: 0.6rem 0.75rem;">
-                <div style="font-size: 1.2rem; font-weight: 700; color: #6EE7B7 !important;">{len(rest_df)}</div>
-                <div style="font-size: 0.65rem; color: #64748B !important;">Rest of Punjab</div>
+            <div style="background: #211B12; padding: 0.55rem 0.7rem;">
+                <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 1.25rem; font-weight: 700; color: #F6F1E7 !important;">{len(rest_df)}</div>
+                <div style="font-size: 0.62rem; color: #8A8172 !important; text-transform: uppercase; letter-spacing: 0.06em;">Rest of Punjab</div>
             </div>
-            <div style="background: rgba(245, 158, 11, 0.1); border-radius: 10px; padding: 0.6rem 0.75rem;">
-                <div style="font-size: 1.2rem; font-weight: 700; color: #FCD34D !important;">{len(df.columns)}</div>
-                <div style="font-size: 0.65rem; color: #64748B !important;">Indicators</div>
+            <div style="background: #211B12; padding: 0.55rem 0.7rem;">
+                <div style="font-family: 'Source Serif 4', Georgia, serif; font-size: 1.25rem; font-weight: 700; color: #F6F1E7 !important;">{len(df.columns)}</div>
+                <div style="font-size: 0.62rem; color: #8A8172 !important; text-transform: uppercase; letter-spacing: 0.06em;">Indicators</div>
             </div>
         </div>
     </div>
@@ -464,33 +197,29 @@ with st.sidebar:
 
     st.markdown("---")
     st.markdown("""
-    <div style="padding: 0 0.5rem; font-size: 0.65rem; color: #475569 !important; line-height: 1.5;">
-        📄 PBS Census 2023 | PSLM | PB Budget
+    <div style="padding: 0 0.75rem; font-size: 0.64rem; color: #8A8172 !important; line-height: 1.6;">
+        Sources: PBS Census 2023 · PSLM · MICS 2011–2018 · Punjab Finance White Papers
     </div>
     """, unsafe_allow_html=True)
 
 
 # PAGE 1: OVERVIEW
 
-if page == "🏠 Overview":
-    st.markdown("""
-    <div class="page-banner">
-        <div class="badge">PBS CENSUS 2023</div>
-        <div class="badge">CENSUS 2017</div>
-        <div class="badge">PSLM 2019-20</div>
-        <div class="badge">36 DISTRICTS</div>
-        <div class="badge">43 INDICATORS</div>
-        <h1>📊 South Punjab Development Dashboard</h1>
-        <p>Analyzing socioeconomic disparities across 11 South Punjab districts
-        compared to the rest of Punjab using real government data from
-        PBS Census 2023, PSLM surveys, and provincial budget archives.</p>
-    </div>
-    """, unsafe_allow_html=True)
+if page == "Overview":
+    masthead(
+        "Special Report · Punjab, Pakistan",
+        "Uneven Progress: Mapping South Punjab's Development Gap",
+        "Eleven southern districts are home to a third of Punjab's people but sit at "
+        "the bottom of nearly every development ranking. This atlas measures the gap — "
+        "and where it is closing — using official census, survey, and budget records.",
+        badges=["PBS Census 2023", "Census 2017", "PSLM 2019-20",
+                "MICS 2011-2018", "36 Districts", "43 Indicators"],
+    )
 
     # ── Choropleth Map ──────────────────────────────────────────────
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
     map_indicator = st.selectbox(
-        "🗺️ Map Indicator",
+        "Map Indicator",
         ["poverty_headcount", "literacy_rate", "out_of_school_rate", "internet_access", "immunization_coverage"],
         format_func=lambda x: x.replace("_", " ").title(),
         key="map_indicator"
@@ -554,7 +283,7 @@ if page == "🏠 Overview":
     # Dynamic insight
     st.markdown(f"""
     <div class="insight-box">
-        💡 <strong>Key Insight:</strong> The most impoverished district is
+        <strong>Key Insight:</strong> The most impoverished district is
         <strong>{_worst_pov['district']}</strong>
         ({_worst_pov['poverty_headcount']:.1f}% poverty) while
         <strong>{_best_pov['district']}</strong> has the lowest
@@ -569,26 +298,26 @@ if page == "🏠 Overview":
     col_a, col_b = st.columns(2)
     with col_a:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### 🔴 Most Impoverished Districts")
+        st.markdown("### Most Impoverished Districts")
         poverty_rank = get_rankings(df, "poverty_headcount", ascending=False)
         st.dataframe(
             poverty_rank.head(10).style.background_gradient(
-                subset=["poverty_headcount"], cmap="Reds"),
+                subset=["poverty_headcount"], cmap="Oranges"),
             width="stretch", hide_index=False)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col_b:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### 🟢 Most Literate Districts")
+        st.markdown("### Most Literate Districts")
         lit_rank = get_rankings(df, "literacy_rate", ascending=False)
         st.dataframe(
             lit_rank.head(10).style.background_gradient(
-                subset=["literacy_rate"], cmap="Greens"),
+                subset=["literacy_rate"], cmap="BuGn"),
             width="stretch", hide_index=False)
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown("### 🔍 Literacy vs Poverty — All Punjab Districts")
+    st.markdown("### Literacy vs Poverty — All Punjab Districts")
     fig = plot_literacy_vs_poverty(df)
     st.pyplot(fig)
     plt.close(fig)
@@ -597,27 +326,25 @@ if page == "🏠 Overview":
 
 # PAGE 2: DISTRICT PROFILES
 
-elif page == "🏘️ District Profiles":
-    st.markdown("""
-    <div class="page-banner">
-        <h1>🏘️ District Profiles</h1>
-        <p>Explore detailed socioeconomic indicators for any Punjab district.</p>
-    </div>
-    """, unsafe_allow_html=True)
+elif page == "District Profiles":
+    masthead(
+        "Explore the Districts",
+        "District Profiles",
+        "Every socioeconomic indicator for any of Punjab's 36 districts, "
+        "benchmarked against regional and provincial averages.",
+    )
 
     selected = st.selectbox("Select a District", sorted(df["district"].unique()))
     profile  = get_district_profile(df, selected)
 
     is_south   = profile["region"] == "South Punjab"
-    region_color = "#EF4444" if is_south else "#6366F1"
-    region_bg    = "#FEE2E2" if is_south else "#EEF2FF"
+    region_cls = "south" if is_south else "rest"
 
     st.markdown(f"""
     <div style="display: flex; align-items: center; gap: 1rem; margin: 1rem 0;">
         <h2 style="margin: 0;">{profile['district']}</h2>
-        <span style="background: {region_bg}; color: {region_color}; padding: 4px 12px;
-              border-radius: 20px; font-size: 0.8rem; font-weight: 600;">{profile['region']}</span>
-        <span style="color: #64748B; font-size: 0.9rem;">{profile['division']} Division</span>
+        <span class="region-tag {region_cls}">{profile['region']}</span>
+        <span style="color: #93897A; font-size: 0.9rem;">{profile['division']} Division</span>
     </div>
     """, unsafe_allow_html=True)
 
@@ -676,13 +403,13 @@ elif page == "🏘️ District Profiles":
 
     # ── Radar Chart ─────────────────────────────────────────────────
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown("### 🕸️ District Performance Radar")
+    st.markdown("### District Performance Radar")
     radar_fig = plot_radar(df, selected, SOUTH_PUNJAB_DISTRICTS)
     st.plotly_chart(radar_fig, use_container_width=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown('<div class="section-card">', unsafe_allow_html=True)
-    st.markdown("### 📊 Compared to Averages")
+    st.markdown("### Compared to Averages")
 
     indicators = ["literacy_rate", "poverty_headcount", "unemployment_rate",
                   "immunization_coverage", "clean_water_access", "sanitation_access",
@@ -692,34 +419,33 @@ elif page == "🏘️ District Profiles":
     for ind in indicators:
         compare_data.append({
             "Indicator": ind.replace("_", " ").title(),
-            f"📍 {selected}": profile[ind],
-            "🔴 South Punjab Avg": sp_df[ind].mean(),
-            "🟣 All Punjab Avg": df[ind].mean(),
+            f"{selected}": profile[ind],
+            "South Punjab Avg": sp_df[ind].mean(),
+            "All Punjab Avg": df[ind].mean(),
         })
 
     compare_df = pd.DataFrame(compare_data)
     st.dataframe(compare_df.style.format({
-        f"📍 {selected}": "{:.1f}",
-        "🔴 South Punjab Avg": "{:.1f}",
-        "🟣 All Punjab Avg": "{:.1f}"
-    }).background_gradient(subset=[f"📍 {selected}"], cmap="Blues"),
+        f"{selected}": "{:.1f}",
+        "South Punjab Avg": "{:.1f}",
+        "All Punjab Avg": "{:.1f}"
+    }).background_gradient(subset=[f"{selected}"], cmap="BuGn"),
     use_container_width=True, hide_index=True)
     st.markdown('</div>', unsafe_allow_html=True)
 
 
 # PAGE 3: EDA
 
-elif page == "📈 EDA":
-    st.markdown("""
-    <div class="page-banner">
-        <h1>📈 Exploratory Data Analysis</h1>
-        <p>Dive deep into the socioeconomic indicators with interactive charts
-        comparing South Punjab against the rest of Punjab.</p>
-    </div>
-    """, unsafe_allow_html=True)
+elif page == "Indicators":
+    masthead(
+        "The Evidence",
+        "Indicator Deep-Dive",
+        "Literacy, poverty, schooling, health, and infrastructure — "
+        "South Punjab measured against the rest of the province, chart by chart.",
+    )
 
     tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-        "📚 Literacy", "💰 Poverty", "🏫 Education", "🏥 Health", "🏗️ Infrastructure", "📅 Temporal", "🔗 Correlations"
+        "Literacy", "Poverty", "Education", "Health", "Infrastructure", "Temporal", "Correlations"
     ])
 
     with tab1:
@@ -727,7 +453,7 @@ elif page == "📈 EDA":
         st.markdown("### District-wise Literacy Rates")
         # Dynamic insight
         st.markdown(f"""<div class="insight-box">
-            💡 South Punjab districts cluster at the <strong>bottom</strong> of literacy rankings,
+            South Punjab districts cluster at the <strong>bottom</strong> of literacy rankings,
             with <strong>{_worst_lit['district']}</strong>
             ({_worst_lit['literacy_rate']:.1f}%) having the lowest literacy in all of Punjab.
         </div>""", unsafe_allow_html=True)
@@ -749,7 +475,7 @@ elif page == "📈 EDA":
         st.markdown("### District-wise Poverty Headcount")
         # Dynamic insight
         st.markdown(f"""<div class="insight-box">
-            💡 <strong>{_sp_in_top10} out of the top 10</strong> most impoverished districts
+            <strong>{_sp_in_top10} out of the top 10</strong> most impoverished districts
             in Punjab belong to South Punjab, with DG Khan division being the worst affected.
         </div>""", unsafe_allow_html=True)
         fig = plot_poverty_map(df)
@@ -759,9 +485,9 @@ elif page == "📈 EDA":
 
         # ── Bubble Chart ────────────────────────────────────────────
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### 🫧 Literacy vs Poverty Bubble Chart")
+        st.markdown("### Literacy vs Poverty Bubble Chart")
         st.markdown("""<div class="insight-box">
-            💡 Bubble size = district population. Color = administrative division.
+            Bubble size = district population. Color = administrative division.
             The dashed trendline confirms the strong negative correlation between literacy and poverty.
         </div>""", unsafe_allow_html=True)
         bubble_fig = plot_bubble(df)
@@ -780,7 +506,7 @@ elif page == "📈 EDA":
         st.markdown("### School Enrollment — South Punjab")
         # Dynamic insight
         st.markdown(f"""<div class="insight-box">
-            💡 On average, only <strong>{_sp_enroll_ratio:.0f} out of 100</strong> primary
+            On average, only <strong>{_sp_enroll_ratio:.0f} out of 100</strong> primary
             students in South Punjab advance to middle school — a significant dropout gap
             that worsens in DG Khan division.
         </div>""", unsafe_allow_html=True)
@@ -793,7 +519,7 @@ elif page == "📈 EDA":
         st.markdown("### Out-of-School Children (5-16 years)")
         if _sp_oos is not None:
             st.markdown(f"""<div class="insight-box">
-                💡 South Punjab has an average out-of-school rate of <strong>{_sp_oos:.1f}%</strong>
+                South Punjab has an average out-of-school rate of <strong>{_sp_oos:.1f}%</strong>
                 compared to <strong>{_rest_oos:.1f}%</strong> in the rest of Punjab — a gap of
                 <strong>{_sp_oos - _rest_oos:.1f} percentage points</strong>.
             </div>""", unsafe_allow_html=True)
@@ -821,7 +547,7 @@ elif page == "📈 EDA":
         st.markdown("### Health Indicators — South Punjab")
         # Dynamic insight
         st.markdown(f"""<div class="insight-box">
-            💡 <strong>{_worst_imm['district']}</strong> has the lowest immunization coverage
+            <strong>{_worst_imm['district']}</strong> has the lowest immunization coverage
             ({_worst_imm['immunization_coverage']:.0f}%) and
             <strong>{_worst_water['district']}</strong> has the worst clean water access
             ({_worst_water['clean_water_access']:.1f}%) in South Punjab.
@@ -837,7 +563,7 @@ elif page == "📈 EDA":
         _sp_sanit = sp_df["sanitation_access"].mean() if "sanitation_access" in sp_df.columns else 0
         _sp_inet = sp_df["internet_access"].mean() if "internet_access" in sp_df.columns else 0
         st.markdown(f"""<div class="insight-box">
-            💡 South Punjab districts average only <strong>{_sp_sanit:.1f}%</strong> sanitation access
+            South Punjab districts average only <strong>{_sp_sanit:.1f}%</strong> sanitation access
             and <strong>{_sp_inet:.1f}%</strong> internet penetration. Districts like
             <strong>Rajanpur</strong> and <strong>DG Khan</strong> are the worst affected.
         </div>""", unsafe_allow_html=True)
@@ -860,7 +586,7 @@ elif page == "📈 EDA":
             sp_change = sp_df["literacy_change"].mean()
             rest_change = rest_df["literacy_change"].mean()
             st.markdown(f"""<div class="insight-box">
-                💡 South Punjab literacy improved by an average of <strong>{sp_change:.1f} percentage points</strong>
+                South Punjab literacy improved by an average of <strong>{sp_change:.1f} percentage points</strong>
                 from 2017 to 2023, compared to <strong>{rest_change:.1f} pp</strong> for the rest of Punjab.
                 While both regions improved, the gap remains significant.
             </div>""", unsafe_allow_html=True)
@@ -875,9 +601,9 @@ elif page == "📈 EDA":
         _corr_val = df["literacy_rate"].corr(df["poverty_headcount"])
         # Dynamic insight
         st.markdown(f"""<div class="insight-box">
-            💡 <strong>Literacy rate</strong> and <strong>poverty headcount</strong> show a strong
+            <strong>Literacy rate</strong> and <strong>poverty headcount</strong> show a strong
             negative correlation (r = {_corr_val:.2f}), confirming that education is the
-            strongest predictor of poverty across Punjab districts.
+            indicator most tightly associated with poverty across Punjab districts.
         </div>""", unsafe_allow_html=True)
         fig = plot_correlation_heatmap(df)
         st.pyplot(fig)
@@ -894,13 +620,13 @@ elif page == "📈 EDA":
 
 # PAGE 4: TEMPORAL TRENDS
 
-elif page == "📅 Temporal Trends":
-    st.markdown("""
-    <div class="page-banner">
-        <h1>📅 Developmental Trends (2011–2023)</h1>
-        <p>Tracking the socioeconomic evolution across Survey Rounds and Census years.</p>
-    </div>
-    """, unsafe_allow_html=True)
+elif page == "Trends 2011–2023":
+    masthead(
+        "Twelve Years of Change",
+        "Developmental Trends, 2011–2023",
+        "Tracking how each district's indicators moved across survey rounds and "
+        "census years — and whether the South is catching up.",
+    )
 
     if df_hist is not None:
         indicator = st.selectbox(
@@ -911,7 +637,7 @@ elif page == "📅 Temporal Trends":
         
         col1, col2 = st.columns([1, 4])
         with col1:
-            st.markdown("### 📍 Highlight Districts")
+            st.markdown("### Highlight Districts")
             selected_dists = st.multiselect(
                 "Choose districts to overlay",
                 options=sorted(df["district"].unique()),
@@ -931,13 +657,13 @@ elif page == "📅 Temporal Trends":
             plt.close(fig)
             
             # Historical Gap analysis — narrow chart below the main trends
-            st.markdown("### 📉 Regional Performance Gap Over Time")
+            st.markdown("### Regional Performance Gap Over Time")
             gap_df = historical_analyzer.compare_historical_gaps(df_hist, indicator, SOUTH_PUNJAB_DISTRICTS)
             if gap_df is not None and "gap" in gap_df.columns:
                 fig_gap, ax_gap = plt.subplots(figsize=(10, 3))
-                ax_gap.plot(gap_df.index, gap_df["gap"], marker='o', color="#94A3B8", linewidth=2)
-                ax_gap.axhline(0, color="#EF4444", linestyle="--", alpha=0.4)
-                ax_gap.fill_between(gap_df.index, gap_df["gap"], alpha=0.12, color="#94A3B8")
+                ax_gap.plot(gap_df.index, gap_df["gap"], marker='o', color=theme.TEAL, linewidth=2)
+                ax_gap.axhline(0, color=theme.SOUTH, linestyle="--", alpha=0.5)
+                ax_gap.fill_between(gap_df.index, gap_df["gap"], alpha=0.12, color=theme.TEAL)
                 ax_gap.set_ylabel("Gap (Rest − South, pp)")
                 ax_gap.set_xlabel("Year")
                 ax_gap.grid(True, linestyle="--", alpha=0.3)
@@ -946,7 +672,7 @@ elif page == "📅 Temporal Trends":
                 plt.close(fig_gap)
 
             # ── Animated Scatter ─────────────────────────────────────
-            st.markdown("### 🎬 Animated District Movement")
+            st.markdown("### Animated District Movement")
             st.caption("Press ▶ Play to watch districts evolve across survey years.")
             anim_fig = plot_animated_scatter(df_hist, indicator, SOUTH_PUNJAB_DISTRICTS)
             if anim_fig:
@@ -959,15 +685,16 @@ elif page == "📅 Temporal Trends":
 
 # PAGE 5: BUDGET ACCOUNTABILITY
 
-elif page == "💰 Budget Accountability":
-    st.markdown("""
-    <div class="page-banner">
-        <h1>💰 Budget & Fiscal Accountability</h1>
-        <p>Analyzing the "White Papers": Comparing Promised Allocations vs. Actual Expenditure.</p>
-    </div>
-    """, unsafe_allow_html=True)
+elif page == "Budget Accountability":
+    masthead(
+        "Follow the Money",
+        "Budget & Fiscal Accountability",
+        "Reading the province's White Papers: what was promised to the South, "
+        "what was actually spent, and the gap in between.",
+        badges=["Punjab Finance White Papers", "ADP 2015-2025", "CPI-adjusted"],
+    )
 
-    adj = st.toggle("🚀 Adjust for Inflation (Real Growth)", value=True, 
+    adj = st.toggle("Adjust for Inflation (Real Growth)", value=True, 
                     help="Uses CPI (Consumer Price Index) to convert nominal PKR into constant 2015-16 values.")
     
     current_budget = df_budget_real if adj else df_budget_nom
@@ -975,7 +702,7 @@ elif page == "💰 Budget Accountability":
     if current_budget is not None:
         # ── Waterfall Chart ───────────────────────────────────────
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### 🌊 Budget Utilization Waterfall")
+        st.markdown("### Budget Utilization Waterfall")
         year_to_view = st.slider("Select Year to view flow:", 
                                  min_value=int(current_budget["year"].min()), 
                                  max_value=int(current_budget["year"].max()), 
@@ -1006,7 +733,7 @@ elif page == "💰 Budget Accountability":
             st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("---")
-        st.markdown("### 📊 Fiscal Performance Summary")
+        st.markdown("### Fiscal Performance Summary")
         summary = historical_analyzer.get_budget_summary(current_budget)
         # Choose column names dynamically based on inflation toggle
         alloc_col = "allocation_real_bn" if adj and "allocation_real_bn" in summary.columns else "allocation_pkr_bn"
@@ -1014,25 +741,23 @@ elif page == "💰 Budget Accountability":
         fmt_dict = {alloc_col: "{:,.1f} Bn", exp_col_fmt: "{:,.1f} Bn", "utilization_rate": "{:.1f}%"}
         st.table(summary.style.format(fmt_dict))
         
-        st.info("💡 **Revised Estimates**: Represent the actual funds released and spent by the end of the fiscal year, often revealing significant under-utilization in Southern districts compared to Central Punjab.")
+        st.info("**Revised Estimates**: Represent the actual funds released and spent by the end of the fiscal year, often revealing significant under-utilization in Southern districts compared to Central Punjab.")
     else:
         st.error("Budget data file not found.")
 
 
-# PAGE 6: ML PREDICTIONS
+# PAGE 6: POVERTY CO-MOVEMENT
 
-elif page == "🤖 ML Predictions":
-    st.markdown("""
-    <div class="page-banner">
-        <div class="badge">LINEAR REGRESSION</div>
-        <div class="badge">RIDGE REGRESSION</div>
-        <div class="badge">LOOCV</div>
-        <h1>🤖 Poverty Prediction Models</h1>
-        <p>Using literacy and health indicators to predict district-level poverty
-        headcount via Linear and Ridge regression with Leave-One-Out cross-validated
-        hyperparameters.</p>
-    </div>
-    """, unsafe_allow_html=True)
+elif page == "Poverty Co-Movement":
+    masthead(
+        "Ecological Correlation · 36 Districts",
+        "Which Indicators Track Deprivation",
+        "Linear and Ridge regressions describe how literacy, health, and "
+        "infrastructure indicators co-move with district poverty headcount. "
+        "At this level of aggregation the models measure association along one "
+        "shared development gradient — not prediction, and not causation.",
+        badges=["Linear Regression", "Ridge Regression", "LOOCV", "SHAP"],
+    )
 
     with st.spinner("Training models..."):
         lr_model, ridge_model, data, best_alpha, alpha_df = train_models(df)
@@ -1074,14 +799,24 @@ elif page == "🤖 ML Predictions":
     better_model = "Ridge" if ridge_r2 >= lr_r2 else "Linear"
     st.markdown(f"""
     <div class="insight-box">
-        💡 Both models achieve <strong>R² > 0.95</strong>. Note: with only {len(df)} districts,
-        high R² is expected due to small sample size — not an indicator of overfitting.
-        <strong>{better_model} Regression</strong> performs better on the test set.
-        Alpha selected via <strong>Leave-One-Out CV</strong> (LOOCV) for maximum reliability.
+        <strong>Read the R² ≈ 0.99 with care — it is not evidence of predictive skill.</strong>
+        The target is the UNDP multidimensional poverty (MPI) headcount, an index computed
+        from deprivation indicators, and ten of the fourteen input features (literacy,
+        enrollment, out-of-school, immunization, water, sanitation, electricity) measure
+        the very components the MPI is built from — the regression largely reconstructs
+        an index from its own ingredients. The remaining features ride the same district
+        development gradient (all features correlate with the target at |r| ≥ 0.57, most
+        above 0.93; one principal component carries ~81% of feature variance). A small
+        sample makes such a fit <em>less</em> trustworthy, not more. Treat coefficients
+        and SHAP values as descriptions of which indicators co-move with deprivation
+        across districts — not as causal drivers or forecasting power.
+        {better_model} regression fits the test split marginally better; alpha selected
+        via Leave-One-Out CV. For a deprivation model built on strictly exogenous
+        features, see the <strong>MICS Longitudinal Study</strong> page.
     </div>
     """, unsafe_allow_html=True)
 
-    tab1, tab2, tab3, tab4 = st.tabs(["📊 Predictions", "📉 Feature Importance", "📋 Alpha Tuning", "🧩 Interpretability (SHAP)"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Model Fit", "Indicator Weights", "Alpha Tuning", "Interpretability (SHAP)"])
 
     with tab1:
         colA, colB = st.columns(2)
@@ -1128,7 +863,7 @@ elif page == "🤖 ML Predictions":
                 break
         styled = alpha_df.style.format(fmt)
         if highlight_col:
-            styled = styled.highlight_min(subset=[highlight_col], color="#D1FAE5")
+            styled = styled.highlight_min(subset=[highlight_col], color="#E6EBDD")
         st.dataframe(styled, use_container_width=True, hide_index=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
@@ -1142,12 +877,14 @@ elif page == "🤖 ML Predictions":
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
         st.markdown("### Model Interpretability (SHAP)")
         st.markdown("""<div class="insight-box">
-            💡 SHAP values show how much each feature contributed to the predicted poverty level.
+            SHAP values decompose each district's fitted poverty level into indicator
+            contributions — read them as association along the district development
+            gradient, not as causal drivers.
         </div>""", unsafe_allow_html=True)
         shap_values = compute_shap_values(lr_model, data["X_train"], X_test, feature_names)
         
         # Summary Plot
-        st.markdown("#### Global Summary: What drives poverty?")
+        st.markdown("#### Global Summary: Which indicators carry the association?")
         st.pyplot(plot_shap_summary(shap_values))
         
         st.markdown("---")
@@ -1166,22 +903,25 @@ elif page == "🤖 ML Predictions":
 
 # PAGE 7: ABOUT
 
-elif page == "ℹ️ About":
-    st.markdown("""
-    <div class="page-banner">
-        <h1>ℹ️ About This Project</h1>
-        <p>A portfolio data science project analyzing development disparities
-        in South Punjab using real government statistics.</p>
-    </div>
-    """, unsafe_allow_html=True)
+elif page == "MICS Longitudinal Study":
+    mics_page.render()
+
+
+elif page == "About & Sources":
+    masthead(
+        "Methodology & Provenance",
+        "About This Project",
+        "A data science portfolio project analyzing development disparities in "
+        "South Punjab, built entirely on official government statistics.",
+    )
 
     col1, col2, col3, col4, col5 = st.columns(5)
     for col, icon, name, desc in [
-        (col1, "🐍", "Python",      "Core Language"),
-        (col2, "🐼", "Pandas",      "Data Processing"),
-        (col3, "📊", "Matplotlib",  "Visualizations"),
-        (col4, "🧠", "Scikit-learn","ML Models"),
-        (col5, "🚀", "Streamlit",   "Dashboard"),
+        (col1, "", "Python",      "Core Language"),
+        (col2, "", "Pandas",      "Data Processing"),
+        (col3, "", "Matplotlib",  "Visualizations"),
+        (col4, "", "Scikit-learn","ML Models"),
+        (col5, "", "Streamlit",   "Dashboard"),
     ]:
         with col:
             st.markdown(f"""
@@ -1198,19 +938,19 @@ elif page == "ℹ️ About":
 
     with col_a:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### 🎯 Objective")
+        st.markdown("### Objective")
         st.markdown("""
         - Identify development gaps in South Punjab
         - Visualize literacy, poverty, health & education indicators
         - Track 15-year developmental trends (2011-2023)
         - Analyze budget allocations vs actual regional spending
-        - Apply ML to understand poverty determinants
+        - Apply ML to describe which indicators co-move with poverty
         - Create an interactive, explorable dashboard
         """)
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### 🏛️ South Punjab Districts")
+        st.markdown("### South Punjab Districts")
         st.markdown("""
         | Division | Districts |
         |----------|-----------|
@@ -1222,7 +962,7 @@ elif page == "ℹ️ About":
 
     with col_b:
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### 📊 Data Sources")
+        st.markdown("### Data Sources")
         st.markdown("""
         | Source | Data | Year |
         |--------|------|------|
@@ -1236,9 +976,9 @@ elif page == "ℹ️ About":
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### ⚠️ Limitations")
+        st.markdown("### Limitations")
         st.markdown(f"""
-        - Dataset has **{len(df)} districts** × **{len(df.columns)} indicators** — high R² expected with small samples
+        - Poverty-model R² ≈ 0.99 is inflated by construction: the target is the UNDP MPI headcount and most features overlap with MPI components (see the note on the Poverty Models page)
         - PSLM indicators (unemployment, sanitation, internet) are from 2019-20 district-level survey
         - Poverty and MPI figures are from UNDP estimates
         - Literacy figures verified from **PBS Census 2023** (Table 12, Punjab Districts)
@@ -1248,12 +988,8 @@ elif page == "ℹ️ About":
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown('<div class="section-card">', unsafe_allow_html=True)
-        st.markdown("### 👨‍💻 Author")
+        st.markdown("### Author")
         st.markdown("""
-        **BS Data Science** — 4th Semester
-
-        Air University, Islamabad
-
-        *Built as a portfolio project for coursework.*
+        **M Saad Sadaf**
         """)
         st.markdown('</div>', unsafe_allow_html=True)

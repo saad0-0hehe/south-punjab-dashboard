@@ -1,9 +1,8 @@
 """
 EDA Visualization Module
-South Punjab Development Dashboard
 
-Provides publication-quality charts for exploring socioeconomic
-disparities across South Punjab districts.
+Charts for exploring socioeconomic disparities
+across Punjab districts.
 """
 
 import matplotlib.pyplot as plt
@@ -15,22 +14,22 @@ import numpy as np
 # Style Configuration
 
 # Modern, clean color palette
-SOUTH_PUNJAB_COLOR = "#E63946"   # Red for South Punjab
-REST_PUNJAB_COLOR = "#457B9D"    # Steel blue for Rest of Punjab
-ACCENT_COLOR = "#F4A261"         # Warm orange accent
-DARK_BG = "#1D3557"              # Dark navy
-PALETTE = ["#E63946", "#457B9D", "#F4A261", "#2A9D8F", "#264653"]
+SOUTH_PUNJAB_COLOR = "#BC4B26"   # Red for South Punjab
+REST_PUNJAB_COLOR = "#175F6B"    # Steel blue for Rest of Punjab
+ACCENT_COLOR = "#C89A3D"         # Warm orange accent
+DARK_BG = "#211D16"              # Dark navy
+PALETTE = ["#BC4B26", "#175F6B", "#C89A3D", "#4C7A3F", "#44524E"]
 
 DIVISION_COLORS = {
-    "Multan": "#E63946",
-    "Bahawalpur": "#F4A261",
-    "DG Khan": "#E76F51",
-    "Lahore": "#457B9D",
-    "Faisalabad": "#2A9D8F",
-    "Rawalpindi": "#264653",
-    "Gujranwala": "#6A994E",
-    "Sargodha": "#BC6C25",
-    "Sahiwal": "#606C38",
+    "Multan": "#BC4B26",
+    "Bahawalpur": "#C89A3D",
+    "DG Khan": "#A85E3B",
+    "Lahore": "#175F6B",
+    "Faisalabad": "#4C7A3F",
+    "Rawalpindi": "#44524E",
+    "Gujranwala": "#6C8A4A",
+    "Sargodha": "#A76B2E",
+    "Sahiwal": "#67693E",
 }
 
 
@@ -39,9 +38,9 @@ def set_style():
     sns.set_theme(style="whitegrid", font_scale=1.1)
     plt.rcParams.update({
         "figure.facecolor": "white",
-        "axes.facecolor": "#FAFAFA",
-        "axes.edgecolor": "#CCCCCC",
-        "grid.color": "#E8E8E8",
+        "axes.facecolor": "#FDFBF6",
+        "axes.edgecolor": "#E4DBC8",
+        "grid.color": "#EAE3D6",
         "font.family": "sans-serif",
         "figure.dpi": 100,
     })
@@ -145,9 +144,9 @@ def plot_gender_gap(df, top_n=15, save_path=None):
     width = 0.35
     
     bars_m = ax.bar(x - width/2, sorted_df["male_literacy"], width, 
-                    label="Male Literacy", color="#457B9D", edgecolor="white")
+                    label="Male Literacy", color="#175F6B", edgecolor="white")
     bars_f = ax.bar(x + width/2, sorted_df["female_literacy"], width,
-                    label="Female Literacy", color="#E63946", edgecolor="white")
+                    label="Female Literacy", color="#BC4B26", edgecolor="white")
     
     ax.set_xticks(x)
     ax.set_xticklabels(sorted_df["district"], rotation=45, ha="right")
@@ -161,7 +160,7 @@ def plot_gender_gap(df, top_n=15, save_path=None):
         gap = row["gender_literacy_gap"]
         mid = (row["male_literacy"] + row["female_literacy"]) / 2
         ax.annotate(f"Δ{gap:.0f}%", xy=(i, mid), fontsize=8, ha="center",
-                    color="#E76F51", fontweight="bold")
+                    color="#A85E3B", fontweight="bold")
     
     plt.tight_layout()
     if save_path:
@@ -184,9 +183,9 @@ def plot_enrollment_trends(df, save_path=None):
     width = 0.35
     
     ax.bar(x - width/2, sp_df["primary_enrollment_rate"], width,
-           label="Primary Enrollment", color="#2A9D8F", edgecolor="white")
+           label="Primary Enrollment", color="#4C7A3F", edgecolor="white")
     ax.bar(x + width/2, sp_df["middle_enrollment_rate"], width,
-           label="Middle Enrollment", color="#E76F51", edgecolor="white")
+           label="Middle Enrollment", color="#A85E3B", edgecolor="white")
     
     ax.set_xticks(x)
     ax.set_xticklabels(sp_df["district"], rotation=45, ha="right")
@@ -217,9 +216,9 @@ def plot_health_indicators(df, save_path=None):
     height = 0.35
     
     ax.barh(y - height/2, sp_df["immunization_coverage"], height,
-            label="Immunization Coverage", color="#2A9D8F", edgecolor="white")
+            label="Immunization Coverage", color="#4C7A3F", edgecolor="white")
     ax.barh(y + height/2, sp_df["clean_water_access"], height,
-            label="Clean Water Access", color="#457B9D", edgecolor="white")
+            label="Clean Water Access", color="#175F6B", edgecolor="white")
     
     ax.set_yticks(y)
     ax.set_yticklabels(sp_df["district"])
@@ -323,7 +322,7 @@ def plot_division_comparison(df, indicator="literacy_rate", save_path=None):
     fig, ax = plt.subplots(figsize=(12, 6))
     
     div_means = df.groupby("division")[indicator].mean().sort_values(ascending=False)
-    colors = [DIVISION_COLORS.get(d, "#999999") for d in div_means.index]
+    colors = [DIVISION_COLORS.get(d, "#93897A") for d in div_means.index]
     
     bars = ax.bar(div_means.index, div_means.values, color=colors, edgecolor="white",
                   linewidth=0.5, width=0.6)
@@ -439,15 +438,15 @@ def plot_infrastructure(df, save_path=None):
     if "sanitation_access" in sp_df.columns:
         indicators.append("sanitation_access")
         labels.append("Sanitation")
-        colors_list.append("#2A9D8F")
+        colors_list.append("#4C7A3F")
     if "internet_access" in sp_df.columns:
         indicators.append("internet_access")
         labels.append("Internet")
-        colors_list.append("#E76F51")
+        colors_list.append("#A85E3B")
     if "electricity_access" in sp_df.columns:
         indicators.append("electricity_access")
         labels.append("Electricity")
-        colors_list.append("#457B9D")
+        colors_list.append("#175F6B")
     
     if not indicators:
         ax.text(0.5, 0.5, "Infrastructure data not available",
@@ -498,9 +497,9 @@ def plot_rural_urban_literacy(df, save_path=None):
     width = 0.35
     
     ax.bar(x - width/2, sp_df["urban_literacy"], width,
-           label="Urban Literacy", color="#457B9D", edgecolor="white")
+           label="Urban Literacy", color="#175F6B", edgecolor="white")
     ax.bar(x + width/2, sp_df["rural_literacy"], width,
-           label="Rural Literacy", color="#E63946", edgecolor="white")
+           label="Rural Literacy", color="#BC4B26", edgecolor="white")
     
     ax.set_xticks(x)
     ax.set_xticklabels(sp_df["district"], rotation=45, ha="right")
@@ -516,7 +515,7 @@ def plot_rural_urban_literacy(df, save_path=None):
         if pd.notna(gap):
             mid = (row["urban_literacy"] + row["rural_literacy"]) / 2
             ax.annotate(f"Δ{gap:.0f}%", xy=(i, mid), fontsize=8, ha="center",
-                        color="#E76F51", fontweight="bold")
+                        color="#A85E3B", fontweight="bold")
     
     plt.tight_layout()
     if save_path:

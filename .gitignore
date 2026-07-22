@@ -17,5 +17,8 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Temporary and local outputs (if any)
-# We will keep the outputs/ folder if it has generated charts that the user wants to commit, but generally generated files shouldn't be committed. However, it's a portfolio project, they might want them there.
+# Not needed for deployment
+data/raw/
+data/pak_admin2.geojson
+notebooks/
+test_integration.py

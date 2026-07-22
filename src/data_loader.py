@@ -1,9 +1,8 @@
 """
 Data Loading and Cleaning Module
-South Punjab Development Dashboard
 
 Handles loading, cleaning, and filtering district-level socioeconomic
-data for South Punjab analysis.
+data for Punjab development analysis.
 """
 
 import pandas as pd
@@ -229,7 +228,7 @@ def clean_data(df):
         if "literacy_change" not in df.columns:
             df["literacy_change"] = (df["literacy_rate"] - df["literacy_rate_2017"]).round(1)
     
-    print(f"✅ Cleaning complete: {len(df)} districts, {len(df.columns)} features")
+    print(f"Cleaning complete: {len(df)} districts, {len(df.columns)} features")
     return df
 
 
@@ -253,9 +252,9 @@ def filter_south_punjab(df):
     sp_df = df[mask].copy()
     
     if len(sp_df) == 0:
-        print("⚠️  Warning: No South Punjab districts found! Check district name spelling.")
+        print("Warning: No South Punjab districts found! Check district name spelling.")
     else:
-        print(f"✅ Filtered to {len(sp_df)} South Punjab districts")
+        print(f"Filtered to {len(sp_df)} South Punjab districts")
     
     return sp_df
 
@@ -276,7 +275,7 @@ def filter_rest_of_punjab(df):
     """
     mask = ~df["district"].isin(SOUTH_PUNJAB_DISTRICTS)
     rest_df = df[mask].copy()
-    print(f"✅ Filtered to {len(rest_df)} Rest of Punjab districts")
+    print(f"Filtered to {len(rest_df)} Rest of Punjab districts")
     return rest_df
 
 
@@ -382,13 +381,13 @@ if __name__ == "__main__":
     rest = filter_rest_of_punjab(df)
     
     # Summary
-    print("\n📊 Regional Summary Statistics:")
+    print("\nRegional Summary Statistics:")
     print("-" * 40)
     summary = get_summary_stats(df)
     print(summary.to_string())
     
     # Rankings
-    print("\n📉 Top 5 Most Impoverished Districts:")
+    print("\nTop 5 Most Impoverished Districts:")
     print("-" * 40)
     poverty_rank = get_rankings(df, "poverty_headcount", ascending=False)
     print(poverty_rank.head().to_string())
@@ -398,4 +397,4 @@ if __name__ == "__main__":
     literacy_rank = get_rankings(df, "literacy_rate", ascending=False)
     print(literacy_rank.head().to_string())
     
-    print("\n✅ Data loader test passed!")
+    print("\nData loader test passed!")

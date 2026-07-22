@@ -68,7 +68,9 @@ def plot_choropleth(df, indicator="poverty_headcount"):
 
     # Choose color scale direction
     is_deprivation = indicator in DEPRIVATION_INDICATORS
-    color_scale = "RdYlGn" if not is_deprivation else "RdYlGn_r"
+    TEAL_SEQ = ["#EAF0ED", "#A6C8C1", "#579990", "#1D6A70", "#0B3840"]
+    WARM_SEQ = ["#F6EFE3", "#E8C9A8", "#D99A66", "#C2683A", "#8F3E1B"]
+    color_scale = TEAL_SEQ if not is_deprivation else WARM_SEQ
 
     label = INDICATOR_LABELS.get(indicator, indicator.replace("_", " ").title())
 

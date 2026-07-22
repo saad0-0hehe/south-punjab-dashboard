@@ -2,8 +2,10 @@
 Machine Learning Module
 South Punjab Development Dashboard
 
-Linear and Ridge regression models to predict poverty scores
-from literacy and health indicators.
+Linear and Ridge regression models describing how district poverty headcount
+co-moves with literacy and health indicators. At 36 aggregated districts on a
+single development gradient (and with MPI-component overlap in the target),
+these are association/co-movement models — not predictive or causal ones.
 
 Fixes applied (v2):
 - StandardScaler now fit ONLY on training data (prevents data leakage)
@@ -68,7 +70,7 @@ def prepare_features(df, features=None, target=None, test_size=0.25, random_stat
     available = [f for f in features if f in df.columns]
     missing = set(features) - set(available)
     if missing:
-        print(f"⚠️  Missing features (skipped): {missing}")
+        print(f"Missing features (skipped): {missing}")
 
     X = df[available].copy()
     y = df[target].copy()
@@ -95,10 +97,11 @@ def prepare_features(df, features=None, target=None, test_size=0.25, random_stat
         index=X_test.index
     )
 
-    print(f"✅ Prepared features: {len(available)} features, "
+    print(f"Prepared features: {len(available)} features, "
           f"{len(X_train)} train, {len(X_test)} test samples")
-    print(f"   ⚠️  Small dataset ({len(X)} total rows) — "
-          f"high R² expected due to limited samples, not overfitting.")
+    print(f"   Note: {len(X)} aggregated districts, one dominant development "
+          f"gradient, and MPI-component overlap with the target mean a very "
+          f"high R2 here reflects data structure, not predictive skill.")
 
     return {
         "X_train": X_train_scaled,
@@ -122,7 +125,7 @@ def train_linear(X_train, y_train):
     model.fit(X_train, y_train)
 
     cv_scores = cross_val_score(model, X_train, y_train, cv=3, scoring="r2")
-    print(f"✅ Linear Regression trained | CV R² = {cv_scores.mean():.3f} ± {cv_scores.std():.3f}")
+    print(f"Linear Regression trained | CV R² = {cv_scores.mean():.3f} ± {cv_scores.std():.3f}")
 
     return model
 
@@ -140,7 +143,7 @@ def train_ridge(X_train, y_train, alpha=1.0):
     model.fit(X_train, y_train)
 
     cv_scores = cross_val_score(model, X_train, y_train, cv=3, scoring="r2")
-    print(f"✅ Ridge Regression (α={alpha}) trained | CV R² = {cv_scores.mean():.3f} ± {cv_scores.std():.3f}")
+    print(f"Ridge Regression (α={alpha}) trained | CV R² = {cv_scores.mean():.3f} ± {cv_scores.std():.3f}")
 
     return model
 
@@ -186,7 +189,7 @@ def find_best_alpha(X_train, y_train, alphas=None):
             best_alpha = alpha
 
     best_r2 = 1 - best_score / y_var if y_var > 0 else 0
-    print(f"✅ Best alpha (LOOCV): {best_alpha} (approx R² = {best_r2:.3f})")
+    print(f"Best alpha (LOOCV): {best_alpha} (approx R² = {best_r2:.3f})")
     return best_alpha, pd.DataFrame(results)
 
 
@@ -210,7 +213,7 @@ def evaluate_model(model, X_test, y_test, model_name="Model"):
         "rmse": np.sqrt(mean_squared_error(y_test, y_pred)),
     }
 
-    print(f"\n📊 {model_name} Evaluation:")
+    print(f"\n{model_name} Evaluation:")
     print(f"   R² Score  : {metrics['r2']:.3f}")
     print(f"   MAE       : {metrics['mae']:.2f}%")
     print(f"   RMSE      : {metrics['rmse']:.2f}%")
@@ -221,28 +224,28 @@ def evaluate_model(model, X_test, y_test, model_name="Model"):
 # Visualization
 
 def plot_predictions(y_test, y_pred, model_name="Model", save_path=None):
-    """Scatter plot: Actual vs Predicted poverty headcount."""
+    """Scatter plot: actual vs fitted poverty headcount (model-fit diagnostic)."""
     sns.set_theme(style="whitegrid")
     fig, ax = plt.subplots(figsize=(8, 8))
 
-    ax.scatter(y_test, y_pred, c="#E63946", alpha=0.7, s=80,
+    ax.scatter(y_test, y_pred, c="#BC4B26", alpha=0.7, s=80,
                edgecolors="white", linewidth=0.5)
 
     lims = [min(y_test.min(), y_pred.min()) - 2,
             max(y_test.max(), y_pred.max()) + 2]
-    ax.plot(lims, lims, "--", color="#457B9D", linewidth=2,
-            alpha=0.8, label="Perfect Prediction")
+    ax.plot(lims, lims, "--", color="#175F6B", linewidth=2,
+            alpha=0.8, label="Perfect agreement (45°)")
 
     ax.set_xlabel("Actual Poverty Headcount (%)", fontsize=12, fontweight="bold")
-    ax.set_ylabel("Predicted Poverty Headcount (%)", fontsize=12, fontweight="bold")
-    ax.set_title(f"{model_name}: Actual vs Predicted", fontsize=14,
+    ax.set_ylabel("Fitted Poverty Headcount (%)", fontsize=12, fontweight="bold")
+    ax.set_title(f"{model_name}: Actual vs Fitted", fontsize=14,
                  fontweight="bold", pad=15)
     ax.legend(fontsize=11)
 
     r2 = r2_score(y_test, y_pred)
     ax.annotate(f"R² = {r2:.3f}", xy=(0.05, 0.92), xycoords="axes fraction",
-                fontsize=13, fontweight="bold", color="#1D3557",
-                bbox=dict(boxstyle="round,pad=0.3", facecolor="#F1FAEE", alpha=0.8))
+                fontsize=13, fontweight="bold", color="#211D16",
+                bbox=dict(boxstyle="round,pad=0.3", facecolor="#F6F1E7", alpha=0.8))
 
     plt.tight_layout()
     if save_path:
@@ -256,7 +259,7 @@ def plot_feature_importance(model, feature_names, model_name="Model", save_path=
     fig, ax = plt.subplots(figsize=(10, 6))
 
     coefs = pd.Series(model.coef_, index=feature_names).sort_values()
-    colors = ["#E63946" if c < 0 else "#2A9D8F" for c in coefs]
+    colors = ["#BC4B26" if c < 0 else "#4C7A3F" for c in coefs]
 
     ax.barh(coefs.index, coefs.values, color=colors,
             edgecolor="white", linewidth=0.5, height=0.6)
@@ -281,10 +284,10 @@ def plot_residuals(y_test, y_pred, model_name="Model", save_path=None):
 
     residuals = y_test - y_pred
 
-    ax.scatter(y_pred, residuals, c="#457B9D", alpha=0.7, s=60, edgecolors="white")
-    ax.axhline(y=0, color="#E63946", linewidth=2, linestyle="--")
+    ax.scatter(y_pred, residuals, c="#175F6B", alpha=0.7, s=60, edgecolors="white")
+    ax.axhline(y=0, color="#BC4B26", linewidth=2, linestyle="--")
 
-    ax.set_xlabel("Predicted Values", fontsize=12, fontweight="bold")
+    ax.set_xlabel("Fitted Values", fontsize=12, fontweight="bold")
     ax.set_ylabel("Residuals", fontsize=12, fontweight="bold")
     ax.set_title(f"{model_name}: Residual Plot", fontsize=14,
                  fontweight="bold", pad=15)

@@ -73,17 +73,17 @@ def plot_radar(df, district_name, south_districts):
     fig.add_trace(go.Scatterpolar(
         r=dist_vals, theta=categories, name=district_name,
         fill="toself", fillcolor="rgba(99, 102, 241, 0.15)",
-        line=dict(color="#6366F1", width=2.5),
+        line=dict(color="#175F6B", width=2.5),
     ))
     fig.add_trace(go.Scatterpolar(
         r=sp_vals, theta=categories, name="South Punjab Avg",
         fill="toself", fillcolor="rgba(239, 68, 68, 0.08)",
-        line=dict(color="#EF4444", width=1.5, dash="dash"),
+        line=dict(color="#BC4B26", width=1.5, dash="dash"),
     ))
     fig.add_trace(go.Scatterpolar(
         r=all_vals, theta=categories, name="All Punjab Avg",
         fill="toself", fillcolor="rgba(148, 163, 184, 0.08)",
-        line=dict(color="#94A3B8", width=1.5, dash="dot"),
+        line=dict(color="#93897A", width=1.5, dash="dot"),
     ))
 
     fig.update_layout(
@@ -130,7 +130,7 @@ def plot_bubble(df):
             "division": "Division",
         },
         size_max=45,
-        color_discrete_sequence=px.colors.qualitative.Set2,
+        color_discrete_sequence=["#175F6B", "#BC4B26", "#C89A3D", "#44524E", "#A85E3B", "#4C7A3F", "#7A6A94", "#3E7C8F"],
     )
 
     fig.update_traces(textposition="top center", textfont_size=8)
@@ -138,7 +138,7 @@ def plot_bubble(df):
     # Add trendline
     fig.add_trace(go.Scatter(
         x=x_line, y=y_line, mode="lines",
-        line=dict(color="#94A3B8", width=2, dash="dash"),
+        line=dict(color="#93897A", width=2, dash="dash"),
         name=f"Trend (r={np.corrcoef(plot_df['literacy_rate'], plot_df['poverty_headcount'])[0,1]:.2f})",
         showlegend=True
     ))
@@ -195,8 +195,8 @@ def plot_animated_trends(df_hist, indicator, selected_districts, south_districts
             "district": "District / Region",
         },
         color_discrete_map={
-            "South Punjab": "#EF4444",
-            "Rest of Punjab": "#6366F1",
+            "South Punjab": "#BC4B26",
+            "Rest of Punjab": "#175F6B",
         },
     )
 
@@ -238,8 +238,8 @@ def plot_animated_scatter(df_hist, indicator, south_districts):
             "district": "",
         },
         color_discrete_map={
-            "South Punjab": "#EF4444",
-            "Rest of Punjab": "#6366F1",
+            "South Punjab": "#BC4B26",
+            "Rest of Punjab": "#175F6B",
         },
     )
 
@@ -282,10 +282,10 @@ def plot_budget_waterfall(df_budget, year, region="South Punjab", use_real=True)
         y=[allocation, -expenditure, 0],
         text=[f"{allocation:.1f} Bn", f"{expenditure:.1f} Bn", f"{gap:.1f} Bn"],
         textposition="outside",
-        connector={"line": {"color": "#94A3B8", "width": 1.5}},
-        decreasing={"marker": {"color": "#6366F1"}},
-        increasing={"marker": {"color": "#EF4444"}},
-        totals={"marker": {"color": "#F59E0B"}},
+        connector={"line": {"color": "#93897A", "width": 1.5}},
+        decreasing={"marker": {"color": "#175F6B"}},
+        increasing={"marker": {"color": "#BC4B26"}},
+        totals={"marker": {"color": "#C89A3D"}},
     ))
 
     unit = "Real PKR Bn (2015 base)" if use_real else "Nominal PKR Bn"
@@ -317,13 +317,13 @@ def plot_waterfall_all_years(df_budget, region="South Punjab", use_real=True):
 
     fig.add_trace(go.Bar(
         x=reg_df["year"], y=reg_df[exp_col],
-        name="Spent", marker_color="#6366F1",
+        name="Spent", marker_color="#175F6B",
         text=reg_df["utilization_pct"].apply(lambda x: f"{x:.0f}%"),
         textposition="inside",
     ))
     fig.add_trace(go.Bar(
         x=reg_df["year"], y=reg_df["gap"],
-        name="Unspent Gap", marker_color="#EF4444",
+        name="Unspent Gap", marker_color="#BC4B26",
         opacity=0.7,
     ))
 
