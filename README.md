@@ -1,6 +1,6 @@
-# Punjab Districts — Development Longitudinal Analysis
+# Punjab MICS — Longitudinal Development Study
 
-An interactive dashboard tracking socioeconomic disparities across Punjab's 36 districts, with a focus on the South Punjab development gap. Spans 15 years of government data (2011–2025) and includes a household-level longitudinal study from three rounds of MICS Punjab microdata.
+An interactive dashboard built on UNICEF MICS Punjab household microdata (2011, 2014, 2017-18), tracking human development across Punjab's 36 districts at the household level.
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python)
 ![Streamlit](https://img.shields.io/badge/Streamlit-Dashboard-red?logo=streamlit)
@@ -9,11 +9,11 @@ An interactive dashboard tracking socioeconomic disparities across Punjab's 36 d
 
 ## What This Does
 
-- Compares 43 socioeconomic indicators across all 36 Punjab districts — literacy, poverty, health, infrastructure, budget
-- Tracks 15-year developmental trends (2011–2023) using PSLM and Census anchor points
-- Analyzes provincial budget disparity: ADP allocations vs. actual expenditure, nominal and inflation-adjusted
-- Presents a household-level MICS longitudinal study (2011, 2014, 2017-18): composite HDI, convergence econometrics, within-district inequality, and SHAP-based deprivation drivers
-- Predicts district-level poverty using regression models with feature importance analysis
+- Constructs a household-level composite HDI from three MICS Punjab rounds covering **185,303 households** across 36 districts
+- Validates the index against the independently published Naveed & Gordon (2024) district rankings (Spearman ρ = 0.969)
+- Tests for **unconditional β-convergence**: initially poorer districts grew faster (β = −0.054, p < 0.001)
+- Tracks **within-district and between-district inequality** from 2011 to 2017-18
+- Identifies deprivation drivers via SHAP on a corrected, exogenous-features-only XGBoost model (honest R² = 0.42–0.48)
 
 ### South Punjab Districts (11)
 
@@ -28,18 +28,13 @@ An interactive dashboard tracking socioeconomic disparities across Punjab's 36 d
 
 ## Data Sources
 
-All data is from official government and UN publications:
-
 | Source | Indicators | Year |
 |--------|-----------|------|
-| PBS Census 2023 (Table 12) | Literacy, enrollment, out-of-school, dropout | 2023 |
-| PBS Census Archive | Historical population and literacy | 2017, 1998 |
-| PSLM District Surveys | Unemployment, sanitation, internet, education trends | 2010–2020 |
-| HIES Archive | Household income, poverty, consumption trends | 2010–2025 |
-| Punjab P&D / ADP | Annual Development Programme allocations | 2015–2025 |
-| Punjab Finance Dept | White Papers: Revised vs Budget Estimates | 2015–2025 |
-| UNDP / MPI | Poverty headcount, Multidimensional Poverty Index | 2020 |
-| UNICEF MICS Punjab | Household microdata: assets, education, child health | 2011, 2014, 2017-18 |
+| UNICEF MICS Punjab 2011 | Household assets, education, child health | 2011 |
+| UNICEF MICS Punjab 2014 | Household assets, education, child health | 2014 |
+| UNICEF MICS Punjab 2017-18 | Household assets, education, child health | 2017-18 |
+| Naveed & Gordon (2024) | Published district HDI (external validation) | 2024 |
+| PDHS 2017-18 | Immunization coverage cross-check | 2018 |
 
 Full citations in [`data/source_references.md`](data/source_references.md).
 
@@ -48,8 +43,8 @@ Full citations in [`data/source_references.md`](data/source_references.md).
 ## Running Locally
 
 ```bash
-git clone https://github.com/saad0-0hehe/punjab-development-analysis.git
-cd punjab-development-analysis
+git clone https://github.com/saad0-0hehe/Punjab-Longitudinal-Development-analysis-.git
+cd Punjab-Longitudinal-Development-analysis-
 pip install -r requirements.txt
 streamlit run app.py
 ```
@@ -58,31 +53,30 @@ streamlit run app.py
 
 ## Dashboard Pages
 
-**Overview** — Headline metric cards, South Punjab vs Rest comparison, top-10 rankings, literacy-poverty scatter.
+**MICS Longitudinal Study** *(default landing page)* — Five tabs:
+- **The Map** — District HDI choropleth across three survey rounds; district trajectory chart
+- **Convergence** — β-convergence scatter, convergence speed (λ), gap half-life
+- **Inequality** — Within-district Gini dumbbell chart (2011 vs 2017-18); between-district Gini trend
+- **Deprivation Drivers** — SHAP feature importance for Punjab, Southern Punjab, and Rest of Punjab
+- **Validation & Rigor** — External validation metrics, robustness checks, methodology notes
 
-**District Profiles** — Full indicator explorer for any district, with comparison against regional and provincial averages.
-
-**Indicators** — Seven tabs covering literacy, poverty, education, health, infrastructure, temporal change, and correlations.
-
-**Trends 2011–2023** — 15-year trend lines for any indicator, district overlays, CAGR tables, regional gap tracking.
-
-**Budget Accountability** — Nominal vs inflation-adjusted ADP allocations, promised vs actually spent, fiscal performance.
-
-**Which Indicators Track Deprivation** — Linear and Ridge regression models, feature importance, LOOCV alpha tuning, residual analysis.
-
-**MICS Longitudinal Study** — Household-level HDI across three survey rounds, validated against Naveed & Gordon (2024). Beta-convergence, within-district Gini trajectories, SHAP feature importance from corrected exogenous-features-only ML analysis.
-
-**About & Sources** — Methodology, data source table, limitations.
+**About & Sources** — Methodology, data source table, author.
 
 ---
 
 ## Selected Findings
 
-- 9 of the top 10 most impoverished Punjab districts are in South Punjab
-- Rajanpur has the lowest literacy (36.1%) and highest poverty (58.4%) in all of Punjab
-- The out-of-school rate in South Punjab is nearly double that of central/northern Punjab
-- In real (inflation-adjusted) terms, South Punjab's ADP growth has been largely eroded by inflation
-- MICS household-level analysis confirms strong unconditional convergence: initially poorer districts grew systematically faster (β = −0.054, p < 0.001), with health converging fastest
+- **Unconditional convergence confirmed**: β = −0.054 (p < 0.001); a district's 2011 HDI alone explains 55% of its subsequent growth rate
+- **The South led the catching-up**: Rajanpur, DG Khan, and Muzaffargarh grew 4.5–5.6%/yr vs ~1%/yr for Lahore and Rawalpindi
+- **Between-district inequality fell by ~32%** (spatial Gini, 2011→2017-18); within-district inequality fell in 31 of 36 districts
+- **Top deprivation drivers** (SHAP, exogenous model): improved flooring, bank account ownership, open defecation, solid cooking fuel, agricultural land ownership
+- **Electricity access** matters significantly more in Southern Punjab than in the rest of the province
+
+---
+
+## Archived Census Pages
+
+The six PBS Census 2023-based pages (Overview, District Profiles, Indicators, Trends 2011–2023, Budget Accountability, Poverty Co-Movement) have been archived to [`archive_census2023/`](archive_census2023/) and are not loaded by the live app. They remain intact for potential revival as a separate project. See [`archive_census2023/README_ARCHIVE.md`](archive_census2023/README_ARCHIVE.md) for revival instructions.
 
 ---
 
