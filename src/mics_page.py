@@ -146,7 +146,7 @@ def render():
         "2011 to 2018. The finding: the province converged, and the South did "
         "the catching up.",
         badges=["MICS 2011", "MICS 2014", "MICS 2017-18",
-                "185,303 Households", "Validated · Spearman 0.98"],
+                "185,303 Households", "Validated · Spearman 0.97"],
     )
 
     hdi = _load_hdi()
@@ -406,7 +406,7 @@ def render():
         st.plotly_chart(sf, use_container_width=True)
         st.markdown(
             '<div class="insight-box"><strong>Corrected, exogenous-features-only '
-            'analysis</strong> (XGBoost on 185,303 households, R² ≈ 0.43–0.52). '
+            'analysis</strong> (XGBoost on 185,303 households, R² ≈ 0.42–0.47). '
             'Features are strictly outside the HDI formula — housing quality, '
             'financial inclusion, WASH, energy. The top five drivers — improved '
             'flooring, bank account ownership, open defecation, solid cooking '
@@ -427,11 +427,11 @@ def render():
 
         r1c1, r1c2, r1c3 = st.columns(3)
         with r1c1:
-            _card("External validation", "ρ = 0.982",
+            _card("External validation", "ρ = 0.969",
                   "Spearman vs Naveed & Gordon (2024), 36 districts",
                   accent="teal")
         with r1c2:
-            _card("Rank concordance", "τ = 0.911",
+            _card("Rank concordance", "τ = 0.879",
                   "Kendall; bottom-5 districts match exactly", accent="teal")
         with r1c3:
             _card("Immunization cross-check", "78% vs ~80%",
@@ -440,7 +440,7 @@ def render():
         st.markdown("<div style='height: 0.6rem'></div>", unsafe_allow_html=True)
         r2c1, r2c2, r2c3 = st.columns(3)
         with r2c1:
-            _card("Honest model fit", "R² 0.43–0.52",
+            _card("Honest model fit", "R² 0.42–0.47",
                   "After removing circular features (was 0.97)", accent="red")
         with r2c2:
             _card("Convergence, two ways", "β and σ agree",
@@ -456,7 +456,7 @@ def render():
         st.markdown("""
 - **External validation.** District HDI ranks were compared against the
   independently published district HDI of Naveed & Gordon (2024): Spearman
-  ρ = 0.982, Kendall τ = 0.911, and the five most-deprived districts
+  ρ = 0.969, Kendall τ = 0.879, and the five most-deprived districts
   (Rajanpur, DG Khan, Muzaffargarh, RY Khan, Lodhran) match rank-for-rank.
 - **Immunization sanity check.** The health index deliberately evaluates a
   wide 12–59-month window, which yields lower levels than official reports.
@@ -465,7 +465,7 @@ def render():
   the window, not measurement error.
 - **Circularity correction.** An early model version scored R² ≈ 0.97 by
   accidentally using components of the HDI as predictors. It was rebuilt with
-  strictly exogenous features; the honest R² of 0.43–0.52 is reported instead.
+  strictly exogenous features; the honest R² of 0.42–0.47 is reported instead.
   The SHAP rankings shown here come exclusively from the corrected model.
 - **Convergence robustness.** β-convergence can be inflated by measurement
   error (the Friedman–Quah critique), so σ-convergence is reported alongside:
